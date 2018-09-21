@@ -4,6 +4,7 @@
 
 #define LINE_LEN 16
 
+
 class CaptureEngine
 {
 	// Private Vars
