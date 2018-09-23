@@ -50,12 +50,12 @@ void CaptureEngine::SelectInterface()
 	interfaceName = d->name;
 }
 
-void CaptureEngine::Capture()
+void CaptureEngine::Capture(int mode = 0)
 {	
 	// Open the device 
-	if ((fp = pcap_open(interfaceName.c_str(),
+	if ((pCapObj = pcap_open(interfaceName.c_str(),
 		100 /*snaplen*/,
-		PCAP_OPENFLAG_PROMISCUOUS /*flags*/,
+		mode /*flags*/,
 		20 /*read timeout*/,
 		NULL /* remote authentication */,
 		errbuf)
@@ -65,14 +65,26 @@ void CaptureEngine::Capture()
 		return;
 	}
 
+	// Now that the pCapObj is created, we can just tap into the capture stream.
+	this->DisplayPacketData();
+
+	return;
+}
+
+// Loop function that uses packets from the PCAP interface to display packet data.
+void CaptureEngine::DisplayPacketData()
+{
+
 	// Read the packets 
-	while ((res = pcap_next_ex(fp, &header, &pkt_data)) >= 0)
+	while ((res = pcap_next_ex(pCapObj, &header, &pkt_data)) >= 0)
 	{
 		if (res == 0)
 			/* Timeout elapsed */
 			continue;
 
-		Sleep(500);
+		// Removing sleep for now... ZS
+		// Let the packets show up as quickly as we are capturing them
+		// Sleep(sleepTime*header->caplen);
 
 		// print pkt timestamp and pkt len
 		printf("%ld:%ld (%ld)\n", header->ts.tv_sec, header->ts.tv_usec, header->len);
@@ -84,7 +96,7 @@ void CaptureEngine::Capture()
 			printf("%.2x ", pkt_data[i - 1]);
 			if ((i % LINE_LEN) == 0) printf("\n");
 			*/
-			
+
 			// First print data in Hex
 			printf("%.2X ", pkt_data[i - 1]);
 			if ((i % LINE_LEN) == 0)
@@ -101,7 +113,6 @@ void CaptureEngine::Capture()
 						// Print a dot if out of ASCII range
 						std::cout << ".";
 					}
-					
 				}
 				printf("\n");
 			}
@@ -112,13 +123,10 @@ void CaptureEngine::Capture()
 
 	if (res == -1)
 	{
-		fprintf(stderr, "Error reading the packets: %s\n", pcap_geterr(fp));
+		fprintf(stderr, "Error reading the packets: %s\n", pcap_geterr(pCapObj));
 		return;
 	}
-
-	return;
 }
-
 
 /* Helper Functions
 
