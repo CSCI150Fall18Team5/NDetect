@@ -96,8 +96,9 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\WinPCap_Dev\WpdPack\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>wpcap.lib;Packet.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\WinPCap_Dev\WpdPack\Lib;</AdditionalLibraryDirectories>
+      <AdditionalDependencies>wpcap.lib;Packet.lib;</AdditionalDependencies>
+      <ShowProgress>LinkVerboseLib</ShowProgress>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
