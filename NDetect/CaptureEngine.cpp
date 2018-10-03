@@ -1,5 +1,17 @@
 #include "pch.h"
 #include "CaptureEngine.h"
+#include <pcap.h>
+#include <iostream>
+#include <thread>
+
+#include <pcap.h>
+
+#ifndef WIN32
+#include <sys/socket.h>
+#include <netinet/in.h>
+#else
+#include <winsock.h>
+#endif
 
 CaptureEngine::CaptureEngine()
 {
@@ -26,8 +38,9 @@ void CaptureEngine::SelectInterface()
 
 	// Print the list 
 	int i = 0;
-	for (d = alldevs; d; d = d->next)
+	for(d = alldevs; d; d = d->next)
 	{
+		/* Print all the available information on the given interface */
 		this->ifprint(d,++i);
 	}
 

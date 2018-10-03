@@ -25,7 +25,7 @@ class CaptureEngine
 	std::string interfaceName = "Test";
 	// Slows the flow of packets on the console during DisplayPacketData()
 	// packets stay on screen longer for longer packets of data.
-	int sleepTime = .2;
+	double sleepTime = .2;
 
 public:
 	CaptureEngine();
