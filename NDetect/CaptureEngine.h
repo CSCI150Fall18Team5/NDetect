@@ -4,7 +4,6 @@
 
 #define LINE_LEN 16
 
-
 class CaptureEngine
 {
 	// Private Vars Needed for WinPCap
@@ -25,8 +24,7 @@ class CaptureEngine
 	std::string interfaceName = "Test";
 	// Slows the flow of packets on the console during DisplayPacketData()
 	// packets stay on screen longer for longer packets of data.
-	double sleepTime = .2;
-
+	double sleepTime = 0.2;
 public:
 	CaptureEngine();
 	~CaptureEngine();

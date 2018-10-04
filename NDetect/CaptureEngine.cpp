@@ -1,17 +1,6 @@
 #include "pch.h"
 #include "CaptureEngine.h"
-#include <pcap.h>
-#include <iostream>
-#include <thread>
 
-#include <pcap.h>
-
-#ifndef WIN32
-#include <sys/socket.h>
-#include <netinet/in.h>
-#else
-#include <winsock.h>
-#endif
 
 CaptureEngine::CaptureEngine()
 {
@@ -47,7 +36,7 @@ void CaptureEngine::SelectInterface()
 	printf("Enter the interface number (1-%d):", i);
 	scanf_s("%d", &inum);
 
-	if (inum < 1 || inum > i)
+	if ((int)inum < 1 || (int)inum > i)
 	{
 		printf("\nInterface number out of range.\n");
 
@@ -57,7 +46,7 @@ void CaptureEngine::SelectInterface()
 	}
 
 	// Jump to the selected adapter
-	for (d = alldevs, i = 0; i < inum - 1; d = d->next, i++);
+	for (d = alldevs, i = 0; i < (int)inum - 1; d = d->next, i++);
 	
 	// Set the local Interface Name for use later
 	interfaceName = d->name;
@@ -114,7 +103,7 @@ void CaptureEngine::DisplayPacketData()
 			printf("%.2X ", pkt_data[i - 1]);
 			if ((i % LINE_LEN) == 0)
 			{
-				for (int j = i - LINE_LEN; j < i + LINE_LEN; j++)
+				for (int j = i - LINE_LEN; j < (int)i + LINE_LEN; j++)
 				{
 					// Print only ASCII Characters (For data veiwing purposes)
 					if (pkt_data[j - 1] < 176 && pkt_data[j - 1] > 40)
@@ -151,7 +140,7 @@ void CaptureEngine::DisplayPacketData()
 void CaptureEngine::ifprint(pcap_if_t *d, int i)
 {
 	pcap_addr_t *a;
-	char ip6str[128];
+	// char ip6str[128];
 
 	/* Name */
 	printf("%i: %s\n", i , d->name);
