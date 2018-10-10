@@ -5,3 +5,7 @@ Debug/
 
 
 *.vcxproj
+
+\.vs/
+
+\.vs
