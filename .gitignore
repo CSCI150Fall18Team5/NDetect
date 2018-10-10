@@ -1,8 +1,9 @@
 
 \.vs
 
+\.vs/**
+
 Debug/
 
 *.vcxproj
 
-\.vs/
