@@ -10,13 +10,6 @@ CaptureEngine::~CaptureEngine()
 {
 }
 
-void CaptureEngine::Init()
-{
-
-
-}
-
-
 // Private variable setter functions
 void CaptureEngine::SetCaptureMode(int mode) 
 {
@@ -28,18 +21,16 @@ void CaptureEngine::SetConsoleMode(ConsoleMode cm)
 	this->consoleMode = cm;
 }
 
-
-
 void CaptureEngine::SelectInterface()
 {
 	//  Find available devices
 	if (pcap_findalldevs_ex((char*)PCAP_SRC_IF_STRING, NULL, &alldevs, errbuf) == -1)
 	{
-		fprintf(stderr, "Error in pcap_findalldevs_ex: %s\n", errbuf);
+		printf("Error in pcap_findalldevs_ex: %s\n", errbuf);
 		return;
 	}
 
-	// Print the list 
+	// Print the list of devices
 	int i = 0;
 	for(d = alldevs; d; d = d->next)
 	{
@@ -77,12 +68,12 @@ void CaptureEngine::Capture()
 		errbuf)
 		) == NULL)
 	{
-		fprintf(stderr, "\nError opening adapter\n");
+		printf("\nError opening adapter\n");
 		return;
 	}
 
 	// Now that the pCapObj is created, we can just tap into the capture stream.
-	// TODO - Place this method in a seperate thread!
+	/// !TODO! - Place this method in a seperate thread!
 	this->CaptureLoop();
 
 	return;
@@ -98,9 +89,8 @@ void CaptureEngine::CaptureLoop()
 			/* Timeout elapsed */
 			continue;
 
-		// Create our Packet object
-
-
+		// Extract TCP/IP Information and create our Packet object
+		DecodePacket();
 
 		// Handle Console Display 
 		if (consoleMode == LiveStream) {
@@ -108,48 +98,33 @@ void CaptureEngine::CaptureLoop()
 			// Display the time, Source/Dest IP addrs and ports.
 			DisplayPacketHeader();
 
-			// Print out the inner packet data.
-			DisplayPacketData();
-
-			// Sleep a short while so that larger packets stay visible
-			Sleep(sleepTime*header->caplen * 10);
-		}
-			
-
-		// New line
-		printf("\n\n");
+			// Displays Packet data
+			if (displayPacketData) {
+				// Print out the inner packet data.
+				DisplayPacketData();
+				// Sleep a short while so that larger packets stay visible
+				Sleep(sleepTime*header->caplen * 2.5);
+			}			
+		}			
 	}
 
 	if (res == -1)
 	{
-		fprintf(stderr, "Error reading the packets: %s\n", pcap_geterr(pCapObj));
+		printf("Error reading the packets: %s\n", pcap_geterr(pCapObj));
 		return;
 	}
 }
 
-
-void CaptureEngine::DisplayPacketHeader() {
-
-	struct tm ltime;
-	char timestr[16];
-	ip_header *ih;
-	udp_header *uh;
-	u_int ip_len;
-	u_short sport, dport;
-	time_t local_tv_sec;
-	
+// Pulls out the relevant information from the raw packet bytes.
+// Creates the Packets objects that we will use throughout the rest of the program
+void CaptureEngine::DecodePacket()
+{
 	// convert the timestamp to readable format 
 	local_tv_sec = header->ts.tv_sec;
 	localtime_s(&ltime, &local_tv_sec);
 	strftime(timestr, sizeof timestr, "%H:%M:%S", &ltime);
 
-	// print pkt timestamp and pkt len
-	printf("%ld:%ld (%ld)\n", header->ts.tv_sec, header->ts.tv_usec, header->len);
-
-	// print timestamp and length of the packet 
-	printf("%s.%.6d len:%d ", timestr, header->ts.tv_usec, header->len);
-
-	// retireve the position of the ip header 
+	// retrieve the position of the ip header 
 	ih = (ip_header *)(pkt_data + 14); //length of ethernet header
 
 	// retireve the position of the udp header 
@@ -160,11 +135,23 @@ void CaptureEngine::DisplayPacketHeader() {
 	sport = ntohs(uh->sport);
 	dport = ntohs(uh->dport);
 
+	// --------------- END Copywritten Code ---------------
 
-	// Print the Live stream
-	// TODO - Make this a seperate function
+	// Create our Packet object
+	Packet pkt = Packet(ih->saddr.byte1, ih->saddr.byte2, ih->saddr.byte3, ih->saddr.byte4, sport, ih->daddr.byte1, ih->daddr.byte2, ih->daddr.byte3, ih->daddr.byte4, dport);
+
+	// Push into our list
+	capturedPackets.push_front(pkt);
+}
+
+
+void CaptureEngine::DisplayPacketHeader() {
+
+	// print timestamp, packet number, and length of the packet 
+	printf("|> {%s.%.6d}\t| Packet # %i\t| length:%d\t| ", timestr,  header->ts.tv_usec, capturedPackets.size(), header->len);
+
 	// print ip addresses and udp ports 
-	printf("%d.%d.%d.%d:%d -> %d.%d.%d.%d:%d\n",
+	printf("%d.%d.%d.%d:%d --> %d.%d.%d.%d:%d\n",
 		ih->saddr.byte1,
 		ih->saddr.byte2,
 		ih->saddr.byte3,
@@ -175,6 +162,10 @@ void CaptureEngine::DisplayPacketHeader() {
 		ih->daddr.byte3,
 		ih->daddr.byte4,
 		dport);
+
+	// print pkt timestamp and pkt len
+	// printf("%ld:%ld (%ld)\n", header->ts.tv_sec, header->ts.tv_usec, header->len);
+	
 
 }
 
@@ -192,10 +183,11 @@ void CaptureEngine::DisplayPacketData()
 		printf("%.2X ", pkt_data[i - 1]);
 		if ((i % LINE_LEN) == 0)
 		{
+			// Then print the next LINE_LEN in ASCII
 			for (int j = i - LINE_LEN; j < (int)i + LINE_LEN; j++)
 			{
 				// Print only ASCII Characters (For data veiwing purposes)
-				if (pkt_data[j - 1] < 176 && pkt_data[j - 1] > 40)
+				if (pkt_data[j - 1] < 128 && pkt_data[j - 1] > 32)
 				{
 					printf("%c", pkt_data[j - 1]);
 				}
@@ -209,6 +201,12 @@ void CaptureEngine::DisplayPacketData()
 		}
 	}
 
+}
+
+// Returns our running list
+std::list<Packet> CaptureEngine::GetPacketList()
+{
+	return this->capturedPackets;
 }
 
 

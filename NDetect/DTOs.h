@@ -84,3 +84,10 @@ typedef struct udp_header {
 	u_short len;            // Datagram length
 	u_short crc;            // Checksum
 }udp_header;
+
+/* TCP header */
+typedef struct tcp_header
+{
+	unsigned short source_port; // source port
+	unsigned short dest_port; // destination port
+} tcp_header;

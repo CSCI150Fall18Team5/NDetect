@@ -4,7 +4,7 @@
 #include "DTOs.h"
 
 
-/* Portions of the code contained in this file, and CaptureEngine.h require this copyright.
+/* Portions of the code contained in this file, and CaptureEngine.cpp require this copyright.
 
  * Copyright (c) 1999 - 2005 NetGroup, Politecnico di Torino (Italy)
  * Copyright (c) 2005 - 2006 CACE Technologies, Davis (California)
@@ -55,6 +55,17 @@ class CaptureEngine
 	int res;
 	struct pcap_pkthdr *header;
 	const u_char *pkt_data;
+	// Used for Filtering
+	u_int netmask;
+
+	// Used in Decoding the packet
+	struct tm ltime;
+	char timestr[16];
+	ip_header *ih;
+	udp_header *uh;
+	u_int ip_len;
+	u_short sport, dport;
+	time_t local_tv_sec;
 
 	// Configuration Vars
 
@@ -65,6 +76,9 @@ class CaptureEngine
 	// Set the console visualization mode
 	ConsoleMode consoleMode = LiveStream;
 
+	// Switch to show packet data in Live Stream Mode.
+	bool displayPacketData = false;
+
 	// Captures the interface name during SelectInterface()
 	std::string interfaceName = "Test";
 
@@ -72,14 +86,11 @@ class CaptureEngine
 	// packets stay on screen longer for longer packets of data.
 	double sleepTime = 0.2;
 
-	std::stack<Packet> capturedPackets;
+	std::list<Packet> capturedPackets;
 
 public:
 	CaptureEngine();
 	~CaptureEngine();
-
-	// Determines how the Engine should proceed
-	void Init();
 
 	// Displays the interfaces to choose from.
 	void SelectInterface();
@@ -95,19 +106,28 @@ public:
 	// Sets the output of the console.
 	void SetConsoleMode(ConsoleMode cm);
 
-	// Taps into the capture engine
+	// Taps into the WinPCap library to start capturing packets
 	void Capture();
 
 	// Uses a while loop to capture new packets.
 	void CaptureLoop();
 
+	// Extracts Useful packet info like the IP addrs and Ports
+	void DecodePacket();
+
 	// Displays the packet in the live stream format
 	void DisplayPacketHeader();
 
+	// Shows the data inside the packet
 	void DisplayPacketData();
+
+	// Getter for Packet List
+	std::list<Packet> GetPacketList();
+
 
 	// Prints the interfaces
 	void ifprint(pcap_if_t *d, int i);
+	// IP to string conversion
 	char * iptos(u_long in);
 };
 
