@@ -10,10 +10,15 @@ CaptureEngine::~CaptureEngine()
 {
 }
 
-void CaptureEngine::Init()
+// Private variable setter functions
+void CaptureEngine::SetCaptureMode(int mode) 
 {
+	this->captureMode = mode;
+}
 
-
+void CaptureEngine::SetConsoleMode(ConsoleMode cm)
+{
+	this->consoleMode = cm;
 }
 
 void CaptureEngine::SelectInterface()
@@ -21,11 +26,11 @@ void CaptureEngine::SelectInterface()
 	//  Find available devices
 	if (pcap_findalldevs_ex((char*)PCAP_SRC_IF_STRING, NULL, &alldevs, errbuf) == -1)
 	{
-		fprintf(stderr, "Error in pcap_findalldevs_ex: %s\n", errbuf);
+		printf("Error in pcap_findalldevs_ex: %s\n", errbuf);
 		return;
 	}
 
-	// Print the list 
+	// Print the list of devices
 	int i = 0;
 	for(d = alldevs; d; d = d->next)
 	{
@@ -52,31 +57,31 @@ void CaptureEngine::SelectInterface()
 	interfaceName = d->name;
 }
 
-void CaptureEngine::Capture(int mode = 0)
+void CaptureEngine::Capture()
 {	
 	// Open the device 
 	if ((pCapObj = pcap_open(interfaceName.c_str(),
 		100 /*snaplen*/,
-		mode /*flags*/,
+		captureMode /*flags*/,
 		20 /*read timeout*/,
 		NULL /* remote authentication */,
 		errbuf)
 		) == NULL)
 	{
-		fprintf(stderr, "\nError opening adapter\n");
+		printf("\nError opening adapter\n");
 		return;
 	}
 
 	// Now that the pCapObj is created, we can just tap into the capture stream.
-	this->DisplayPacketData();
+	/// !TODO! - Place this method in a seperate thread!
+	this->CaptureLoop();
 
 	return;
 }
 
 // Loop function that uses packets from the PCAP interface to display packet data.
-void CaptureEngine::DisplayPacketData()
+void CaptureEngine::CaptureLoop()
 {
-
 	// Read the packets 
 	while ((res = pcap_next_ex(pCapObj, &header, &pkt_data)) >= 0)
 	{
@@ -84,51 +89,128 @@ void CaptureEngine::DisplayPacketData()
 			/* Timeout elapsed */
 			continue;
 
-		// Removing sleep for now... ZS
-		// Let the packets show up as quickly as we are capturing them
-		// Sleep(sleepTime*header->caplen);
+		// Extract TCP/IP Information and create our Packet object
+		DecodePacket();
 
-		// print pkt timestamp and pkt len
-		printf("%ld:%ld (%ld)\n", header->ts.tv_sec, header->ts.tv_usec, header->len);
+		// Handle Console Display 
+		if (consoleMode == LiveStream) {
 
-		// Loop through Packet data
-		for (i = 1; (i < header->caplen + 1); i++)
-		{
-			/*
-			printf("%.2x ", pkt_data[i - 1]);
-			if ((i % LINE_LEN) == 0) printf("\n");
-			*/
+			// Display the time, Source/Dest IP addrs and ports.
+			DisplayPacketHeader();
 
-			// First print data in Hex
-			printf("%.2X ", pkt_data[i - 1]);
-			if ((i % LINE_LEN) == 0)
-			{
-				for (int j = i - LINE_LEN; j < (int)i + LINE_LEN; j++)
-				{
-					// Print only ASCII Characters (For data veiwing purposes)
-					if (pkt_data[j - 1] < 176 && pkt_data[j - 1] > 40)
-					{
-						printf("%c", pkt_data[j - 1]);
-					}
-					else
-					{
-						// Print a dot if out of ASCII range
-						std::cout << ".";
-					}
-				}
-				printf("\n");
-			}
-		}
-
-		printf("\n\n");
+			// Displays Packet data
+			if (displayPacketData) {
+				// Print out the inner packet data.
+				DisplayPacketData();
+				// Sleep a short while so that larger packets stay visible
+				Sleep(sleepTime*header->caplen * 2.5);
+			}			
+		}			
 	}
 
 	if (res == -1)
 	{
-		fprintf(stderr, "Error reading the packets: %s\n", pcap_geterr(pCapObj));
+		printf("Error reading the packets: %s\n", pcap_geterr(pCapObj));
 		return;
 	}
 }
+
+// Pulls out the relevant information from the raw packet bytes.
+// Creates the Packets objects that we will use throughout the rest of the program
+void CaptureEngine::DecodePacket()
+{
+	// convert the timestamp to readable format 
+	local_tv_sec = header->ts.tv_sec;
+	localtime_s(&ltime, &local_tv_sec);
+	strftime(timestr, sizeof timestr, "%H:%M:%S", &ltime);
+
+	// retrieve the position of the ip header 
+	ih = (ip_header *)(pkt_data + 14); //length of ethernet header
+
+	// retireve the position of the udp header 
+	ip_len = (ih->ver_ihl & 0xf) * 4;
+	uh = (udp_header *)((u_char*)ih + ip_len);
+
+	// convert from network byte order to host byte order 
+	sport = ntohs(uh->sport);
+	dport = ntohs(uh->dport);
+
+	// --------------- END Copywritten Code ---------------
+
+	// Create our Packet object
+	Packet pkt = Packet(ih->saddr.byte1, ih->saddr.byte2, ih->saddr.byte3, ih->saddr.byte4, sport, ih->daddr.byte1, ih->daddr.byte2, ih->daddr.byte3, ih->daddr.byte4, dport);
+
+	// Push into our list
+	capturedPackets.push_front(pkt);
+}
+
+
+void CaptureEngine::DisplayPacketHeader() {
+
+	// print timestamp, packet number, and length of the packet 
+	printf("|> {%s.%.6d}\t| Packet # %i\t| length:%d\t| ", timestr,  header->ts.tv_usec, capturedPackets.size(), header->len);
+
+	// print ip addresses and udp ports 
+	printf("%d.%d.%d.%d:%d --> %d.%d.%d.%d:%d\n",
+		ih->saddr.byte1,
+		ih->saddr.byte2,
+		ih->saddr.byte3,
+		ih->saddr.byte4,
+		sport,
+		ih->daddr.byte1,
+		ih->daddr.byte2,
+		ih->daddr.byte3,
+		ih->daddr.byte4,
+		dport);
+
+	// print pkt timestamp and pkt len
+	// printf("%ld:%ld (%ld)\n", header->ts.tv_sec, header->ts.tv_usec, header->len);
+	
+
+}
+
+void CaptureEngine::DisplayPacketData()
+{
+	// Loop through Packet data
+	for (i = 1; (i < header->caplen + 1); i++)
+	{
+		/*
+		printf("%.2x ", pkt_data[i - 1]);
+		if ((i % LINE_LEN) == 0) printf("\n");
+		*/
+
+		// First print data in Hex
+		printf("%.2X ", pkt_data[i - 1]);
+		if ((i % LINE_LEN) == 0)
+		{
+			// Then print the next LINE_LEN in ASCII
+			for (int j = i - LINE_LEN; j < (int)i + LINE_LEN; j++)
+			{
+				// Print only ASCII Characters (For data veiwing purposes)
+				if (pkt_data[j - 1] < 128 && pkt_data[j - 1] > 32)
+				{
+					printf("%c", pkt_data[j - 1]);
+				}
+				else
+				{
+					// Print a dot if out of ASCII range
+					std::cout << ".";
+				}
+			}
+			printf("\n");
+		}
+	}
+
+}
+
+// Returns our running list
+std::list<Packet> CaptureEngine::GetPacketList()
+{
+	return this->capturedPackets;
+}
+
+
+
 
 /* Helper Functions
 

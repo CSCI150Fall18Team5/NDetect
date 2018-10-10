@@ -21,7 +21,7 @@
     <ClInclude Include="CaptureEngine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DataTypes.h">
+    <ClInclude Include="DTOs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -33,6 +33,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CaptureEngine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DTOs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
