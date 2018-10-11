@@ -21,6 +21,12 @@ void CaptureEngine::SetConsoleMode(ConsoleMode cm)
 	this->consoleMode = cm;
 }
 
+void CaptureEngine::SetLiveStreamDisplay(bool rawDisplay)
+{
+	this->displayPacketData = rawDisplay;
+}
+
+
 void CaptureEngine::SelectInterface()
 {
 	//  Find available devices
@@ -104,6 +110,7 @@ void CaptureEngine::CaptureLoop()
 				DisplayPacketData();
 				// Sleep a short while so that larger packets stay visible
 				Sleep(sleepTime*header->caplen * 2.5);
+				printf("\n\n");
 			}			
 		}			
 	}

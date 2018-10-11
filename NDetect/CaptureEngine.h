@@ -106,6 +106,9 @@ public:
 	// Sets the output of the console.
 	void SetConsoleMode(ConsoleMode cm);
 
+	// Set the way live stream is displayed
+	void SetLiveStreamDisplay(bool);
+
 	// Taps into the WinPCap library to start capturing packets
 	void Capture();
 
