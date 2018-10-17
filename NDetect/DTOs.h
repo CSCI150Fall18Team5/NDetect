@@ -1,4 +1,5 @@
 #pragma once
+#include "pch.h"
 
 /*
 	DTOs - (Data Transfer Objects)
@@ -7,46 +8,9 @@
 	carry data around the program.
 */
 
-
-// Keeping as a class instead of struct so we can destroy it properly.
-class Packet
+enum PacketDisplay
 {
-	// String Representation
-	std::string source_ip_addr;
-	std::string dest_ip_addr;
-	
-	// Source IP bytes
-	u_char source_byte1;
-	u_char source_byte2;
-	u_char source_byte3;
-	u_char source_byte4;
-	// Source Port
-	u_short source_port;
-
-	// Destination IP Bytes
-	u_char dest_byte1;
-	u_char dest_byte2;
-	u_char dest_byte3;
-	u_char dest_byte4;
-	// Destination Port
-	u_short dest_port;
-
-public:
-	
-	// This constructor looks bad, but in use it's nicer..
-	Packet(u_char source_byte1, u_char source_byte2, u_char source_byte3, u_char source_byte4, u_short source_port, u_char dest_byte1, u_char dest_byte2, u_char dest_byte3, u_char dest_byte4, u_short dest_port);
-	
-	// Blank
-	Packet();
-
-	// Figure out how to properly destory..
-	~Packet();
-
-	// Sets the packet data
-	void SetSource(u_char s_byte1, u_char s_byte2, u_char s_byte3, u_char s_byte4, u_short s_port);
-	void SetDestination(u_char d_byte1, u_char d_byte2, u_char d_byte3, u_char d_byte4, u_short d_port);
-
-
+	HeaderOnly, RawData
 };
 
 enum ConsoleMode
@@ -55,15 +19,15 @@ enum ConsoleMode
 };
 
 /* 4 bytes IP address */
-typedef struct ip_address {
+struct ip_address {
 	u_char byte1;
 	u_char byte2;
 	u_char byte3;
 	u_char byte4;
-}ip_address;
+};
 
 /* IPv4 header */
-typedef struct ip_header {
+struct ip_header {
 	u_char  ver_ihl;        // Version (4 bits) + Internet header length (4 bits)
 	u_char  tos;            // Type of service 
 	u_short tlen;           // Total length 
@@ -75,19 +39,76 @@ typedef struct ip_header {
 	ip_address  saddr;      // Source address
 	ip_address  daddr;      // Destination address
 	u_int   op_pad;         // Option + Padding
-}ip_header;
+};
 
 /* UDP header*/
-typedef struct udp_header {
+struct udp_header {
 	u_short sport;          // Source port
 	u_short dport;          // Destination port
 	u_short len;            // Datagram length
 	u_short crc;            // Checksum
-}udp_header;
+};
 
 /* TCP header */
-typedef struct tcp_header
+struct tcp_header
 {
-	unsigned short source_port; // source port
-	unsigned short dest_port; // destination port
-} tcp_header;
+	unsigned short sPort; // source port
+	unsigned short dPort; // destination port
+} ;
+
+
+
+// Keeping as a class instead of struct so we can destroy it properly.
+class Packet
+{
+	// String Representation
+	std::string sourceIpString;
+	std::string destIpString;
+	
+	// Source IP
+	ip_address sourceIpAddr;
+	// Source Port
+	u_short sourcePort;
+
+	// Destination IP 
+	ip_address destIpAddr;
+	// Destination Port
+	u_short destPort;
+
+public:
+
+	// Blank
+	Packet();
+	// Fills out TCP/IP info
+	Packet(ip_address sourceIP, u_short sourcePort, ip_address destIP, u_short destPort);
+
+	// Figure out how to properly destory..
+	~Packet();
+
+	/* Sets the packet data
+	void SetSource(u_char sByte1, u_char sByte2, u_char sByte3, u_char sByte4, u_short sPort);
+	void SetSource(ip_address sourceIP, u_short sPort);
+	void SetDestination(u_char dByte1, u_char dByte2, u_char dByte3, u_char dByte4, u_short dPort);
+	void SetDestination(ip_address destIp, u_short dPort);
+	*/
+
+	std::string GetSourceIP();
+	std::string GetSourcePort();
+	std::string GetDestIP();
+	std::string GetDestPort();
+
+};
+
+
+//  Inherits from Packet to automatically have TCP/IP information.
+class Connection : private Packet {
+
+	// Store the packets of this connection there
+	std::stack<Packet> packets;
+
+	Connection();
+	Connection(Packet pkt);
+
+	void AddPacket(Packet newPkt);
+
+};
