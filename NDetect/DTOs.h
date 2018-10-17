@@ -57,14 +57,9 @@ struct tcp_header
 } ;
 
 
-
 // Keeping as a class instead of struct so we can destroy it properly.
 class Packet
 {
-	// String Representation
-	std::string sourceIpString;
-	std::string destIpString;
-	
 	// Source IP
 	ip_address sourceIpAddr;
 	// Source Port
@@ -75,6 +70,12 @@ class Packet
 	// Destination Port
 	u_short destPort;
 
+	// String Representations
+	std::string sourceIpString;
+	std::string destIpString;
+	std::string sourcePortString;
+	std::string destPortString;
+
 public:
 
 	// Blank
@@ -82,16 +83,7 @@ public:
 	// Fills out TCP/IP info
 	Packet(ip_address sourceIP, u_short sourcePort, ip_address destIP, u_short destPort);
 
-	// Figure out how to properly destory..
-	~Packet();
-
-	/* Sets the packet data
-	void SetSource(u_char sByte1, u_char sByte2, u_char sByte3, u_char sByte4, u_short sPort);
-	void SetSource(ip_address sourceIP, u_short sPort);
-	void SetDestination(u_char dByte1, u_char dByte2, u_char dByte3, u_char dByte4, u_short dPort);
-	void SetDestination(ip_address destIp, u_short dPort);
-	*/
-
+	// Getter / Setters
 	std::string GetSourceIP();
 	std::string GetSourcePort();
 	std::string GetDestIP();

@@ -20,71 +20,41 @@ Packet::Packet(ip_address sourceIP, u_short sourcePort, ip_address destIP, u_sho
 	this->sourcePort = sourcePort;
 	this->destIpAddr = destIP;
 	this->destPort = destPort;
+
+	// Set the string versions of the IP
+	this->destIpString = this->GetDestIP();
+	this->sourceIpString = this->GetSourceIP();
+	this->sourcePortString = this->GetSourcePort();
+	this->destPortString = this->GetDestPort();
 }
 
-
-Packet::~Packet()
-{
-}
-
-/*
-
-	============ Might not need these functions, commenting out for now. ============
-
-void Packet::SetSource(u_char sByte1, u_char sByte2, u_char sByte3, u_char sByte4, u_short s_port)
-{
-	this->sourceIpAddr.byte1 = sByte1;
-	this->sourceIpAddr.byte2 = sByte2;
-	this->sourceIpAddr.byte3 = sByte3;
-	this->sourceIpAddr.byte4 = sByte4;
-	this->sourcePort = s_port;
-}
-
-void Packet::SetSource(ip_address sourceIP, u_short sPort)
-{
-	this->destIpAddr = sourceIP;
-	this->sourcePort = sPort;
-}
-
-
-void Packet::SetDestination(u_char dByte1, u_char dByte2, u_char dByte3, u_char dByte4, u_short d_port)
-{
-	this->destIpAddr.byte1 = dByte1;
-	this->destIpAddr.byte2 = dByte2;
-	this->destIpAddr.byte3 = dByte3;
-	this->destIpAddr.byte4 = dByte4;
-	this->destPort = d_port;
-
-}
-
-void Packet::SetDestination(ip_address destIp, u_short dPort)
-{
-	this->destIpAddr = destIp;
-	this->destPort = dPort;
-}
-
-*/
-
-// TODO Properly Implement these
 
 std::string Packet::GetSourceIP()
 {
-	return std::string();
+	char cAddr[1024];
+	sprintf_s(cAddr, "%d.%d.%d.%d", this->sourceIpAddr.byte1, this->sourceIpAddr.byte2, this->sourceIpAddr.byte3, this->sourceIpAddr.byte4);
+	return cAddr;
 }
 
 std::string Packet::GetSourcePort()
 {
-	return std::string();
+	char cPort[1024];
+	sprintf_s(cPort, "%d", this->sourcePort);
+	return cPort;
 }
 
 std::string Packet::GetDestIP()
 {
-	return std::string();
+	char cAddr[1024];
+	sprintf_s(cAddr, "%d.%d.%d.%d", this->destIpAddr.byte1, this->destIpAddr.byte2, this->destIpAddr.byte3, this->destIpAddr.byte4);
+	return cAddr;
 }
 
 std::string Packet::GetDestPort()
 {
-	return std::string();
+	char cPort[1024];
+	sprintf_s(cPort, "%d", this->destPort);
+	return cPort;
 }
 
 
