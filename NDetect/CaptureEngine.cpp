@@ -21,9 +21,9 @@ void CaptureEngine::SetConsoleMode(ConsoleMode cm)
 	this->consoleMode = cm;
 }
 
-void CaptureEngine::SetLiveStreamDisplay(bool rawDisplay)
+void CaptureEngine::SetLiveStreamDisplay(PacketDisplay pcktdisp)
 {
-	this->displayPacketData = rawDisplay;
+	this->displayPacketData = pcktdisp;
 }
 
 
@@ -78,8 +78,10 @@ void CaptureEngine::Capture()
 		return;
 	}
 
+	// Free the devices, since we choose ours already.
+	pcap_freealldevs(alldevs);
+
 	// Now that the pCapObj is created, we can just tap into the capture stream.
-	/// !TODO! - Place this method in a seperate thread!
 	this->CaptureLoop();
 
 	return;
@@ -109,7 +111,7 @@ void CaptureEngine::CaptureLoop()
 				// Print out the inner packet data.
 				DisplayPacketData();
 				// Sleep a short while so that larger packets stay visible
-				Sleep(sleepTime*header->caplen * 2.5);
+				Sleep(sleepTime*header->caplen * 5);
 				printf("\n\n");
 			}			
 		}			
@@ -144,11 +146,10 @@ void CaptureEngine::DecodePacket()
 
 	// --------------- END Copywritten Code ---------------
 
-	// Create our Packet object
-	Packet pkt = Packet(ih->saddr.byte1, ih->saddr.byte2, ih->saddr.byte3, ih->saddr.byte4, sport, ih->daddr.byte1, ih->daddr.byte2, ih->daddr.byte3, ih->daddr.byte4, dport);
-
-	// Push into our list
-	capturedPackets.push_front(pkt);
+	// Create our Packet object, and push into our list
+	capturedPackets.push_front(
+			Packet(ih->saddr, sport, ih->daddr, dport)
+	);
 }
 
 
@@ -215,8 +216,6 @@ std::list<Packet> CaptureEngine::GetPacketList()
 {
 	return this->capturedPackets;
 }
-
-
 
 
 /* Helper Functions
