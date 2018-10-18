@@ -91,7 +91,7 @@ void CaptureEngine::Capture()
 void CaptureEngine::CaptureLoop()
 {
 	// Read the packets 
-	while ((res = pcap_next_ex(pCapObj, &header, &pkt_data)) >= 0)
+	while ((res = pcap_next_ex(pCapObj, &header, &pkt_data)) >= 0 && continueCapturing)
 	{
 		if (res == 0)
 			/* Timeout elapsed */
@@ -115,6 +115,12 @@ void CaptureEngine::CaptureLoop()
 				printf("\n\n");
 			}			
 		}			
+	}
+
+	// If we stop the output by triggering CTRL+C
+	// Just sleep until the program quits
+	while (!continueCapturing) {
+		Sleep(1000);
 	}
 
 	if (res == -1)
@@ -148,7 +154,7 @@ void CaptureEngine::DecodePacket()
 
 	// Create our Packet object, and push into our list
 	capturedPackets.push_front(
-			Packet(ih->saddr, sport, ih->daddr, dport)
+			Packet(ltime, header->len, ih->saddr, sport, ih->daddr, dport)
 	);
 }
 
@@ -174,7 +180,6 @@ void CaptureEngine::DisplayPacketHeader() {
 	// print pkt timestamp and pkt len
 	// printf("%ld:%ld (%ld)\n", header->ts.tv_sec, header->ts.tv_usec, header->len);
 	
-
 }
 
 void CaptureEngine::DisplayPacketData()
@@ -215,6 +220,11 @@ void CaptureEngine::DisplayPacketData()
 std::list<Packet> CaptureEngine::GetPacketList()
 {
 	return this->capturedPackets;
+}
+
+void CaptureEngine::SetContinueCapturing(bool val)
+{
+	this->continueCapturing = val;
 }
 
 

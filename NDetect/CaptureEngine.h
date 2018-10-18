@@ -39,6 +39,11 @@
  */
 
 
+ /*
+	 TODO:
+		 Write functions to sort Packets into Connections
+ */
+
 #define LINE_LEN 16
 
 class CaptureEngine
@@ -85,14 +90,16 @@ class CaptureEngine
 	// packets stay on screen longer for longer packets of data.
 	double sleepTime = 0.2;
 
+	// List of Packets captured
 	std::list<Packet> capturedPackets;
 
+	// Halts capturing if changed
+	bool continueCapturing = true;
 
 	// Prints the interfaces
 	void ifprint(pcap_if_t *d, int i);
 	// IP to string conversion
 	char * iptos(u_long in);
-
 
 public:
 	CaptureEngine();
@@ -133,9 +140,6 @@ public:
 	// Getter for Packet List
 	std::list<Packet> GetPacketList();
 
+	void SetContinueCapturing(bool);
 
 };
-
-/*
-	Structures
-*/

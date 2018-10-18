@@ -8,14 +8,27 @@
 	carry data around the program.
 */
 
+
+/*
+	Enums used in CaptureEngine
+*/
 enum PacketDisplay
 {
 	HeaderOnly, RawData
 };
-
 enum ConsoleMode
 {
 	Statistics, LiveStream, Combo
+};
+
+
+// This enum refers to the programThreads array back in NDetect.cpp
+// Enum values start at 0
+// To create new threads, create a new entry in this enum
+// Then, you can refence your thread like so:
+// Ex. programThreads[NewThreadEnum].join()
+enum ThreadID {
+	CaptureLoop, ThreadedPrint
 };
 
 /* 4 bytes IP address */
@@ -54,8 +67,7 @@ struct tcp_header
 {
 	unsigned short sPort; // source port
 	unsigned short dPort; // destination port
-} ;
-
+};
 
 // Keeping as a class instead of struct so we can destroy it properly.
 class Packet
@@ -76,12 +88,18 @@ class Packet
 	std::string sourcePortString;
 	std::string destPortString;
 
+	// Packet interception time
+	struct tm capturedTime;
+
+	// Packet Byte Length
+	int packetBytes;
+
 public:
 
 	// Blank
 	Packet();
 	// Fills out TCP/IP info
-	Packet(ip_address sourceIP, u_short sourcePort, ip_address destIP, u_short destPort);
+	Packet(tm cTime, int bytes, ip_address sourceIP, u_short sourcePort, ip_address destIP, u_short destPort);
 
 	// Getter / Setters
 	std::string GetSourceIP();

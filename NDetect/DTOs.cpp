@@ -9,13 +9,19 @@
 */
 
 
-
 Packet::Packet()
 {
 }
 
-Packet::Packet(ip_address sourceIP, u_short sourcePort, ip_address destIP, u_short destPort)
+Packet::Packet(tm cTime, int bytes, ip_address sourceIP, u_short sourcePort, ip_address destIP, u_short destPort)
 {
+	// Set the Packet Capture Time
+	this->capturedTime = cTime;
+	
+	// Set the packet byte count
+	this->packetBytes = bytes;
+
+	// Set the IP Address and Port both directions
 	this->sourceIpAddr = sourceIP;
 	this->sourcePort = sourcePort;
 	this->destIpAddr = destIP;
