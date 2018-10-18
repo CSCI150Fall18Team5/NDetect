@@ -21,9 +21,9 @@ void CaptureEngine::SetConsoleMode(ConsoleMode cm)
 	this->consoleMode = cm;
 }
 
-void CaptureEngine::SetLiveStreamDisplay(bool rawDisplay)
+void CaptureEngine::SetLiveStreamDisplay(PacketDisplay pcktdisp)
 {
-	this->displayPacketData = rawDisplay;
+	this->displayPacketData = pcktdisp;
 }
 
 
@@ -78,8 +78,10 @@ void CaptureEngine::Capture()
 		return;
 	}
 
+	// Free the devices, since we choose ours already.
+	pcap_freealldevs(alldevs);
+
 	// Now that the pCapObj is created, we can just tap into the capture stream.
-	/// !TODO! - Place this method in a seperate thread!
 	this->CaptureLoop();
 
 	return;
@@ -89,7 +91,7 @@ void CaptureEngine::Capture()
 void CaptureEngine::CaptureLoop()
 {
 	// Read the packets 
-	while ((res = pcap_next_ex(pCapObj, &header, &pkt_data)) >= 0)
+	while ((res = pcap_next_ex(pCapObj, &header, &pkt_data)) >= 0 && continueCapturing)
 	{
 		if (res == 0)
 			/* Timeout elapsed */
@@ -109,10 +111,16 @@ void CaptureEngine::CaptureLoop()
 				// Print out the inner packet data.
 				DisplayPacketData();
 				// Sleep a short while so that larger packets stay visible
-				Sleep(sleepTime*header->caplen * 2.5);
+				Sleep(sleepTime*header->caplen * 5);
 				printf("\n\n");
 			}			
 		}			
+	}
+
+	// If we stop the output by triggering CTRL+C
+	// Just sleep until the program quits
+	while (!continueCapturing) {
+		Sleep(1000);
 	}
 
 	if (res == -1)
@@ -144,11 +152,10 @@ void CaptureEngine::DecodePacket()
 
 	// --------------- END Copywritten Code ---------------
 
-	// Create our Packet object
-	Packet pkt = Packet(ih->saddr.byte1, ih->saddr.byte2, ih->saddr.byte3, ih->saddr.byte4, sport, ih->daddr.byte1, ih->daddr.byte2, ih->daddr.byte3, ih->daddr.byte4, dport);
-
-	// Push into our list
-	capturedPackets.push_front(pkt);
+	// Create our Packet object, and push into our list
+	capturedPackets.push_front(
+			Packet(ltime, header->len, ih->saddr, sport, ih->daddr, dport)
+	);
 }
 
 
@@ -173,7 +180,6 @@ void CaptureEngine::DisplayPacketHeader() {
 	// print pkt timestamp and pkt len
 	// printf("%ld:%ld (%ld)\n", header->ts.tv_sec, header->ts.tv_usec, header->len);
 	
-
 }
 
 void CaptureEngine::DisplayPacketData()
@@ -216,7 +222,10 @@ std::list<Packet> CaptureEngine::GetPacketList()
 	return this->capturedPackets;
 }
 
-
+void CaptureEngine::SetContinueCapturing(bool val)
+{
+	this->continueCapturing = val;
+}
 
 
 /* Helper Functions

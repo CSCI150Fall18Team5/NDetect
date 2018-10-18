@@ -39,6 +39,10 @@
  */
 
 
+ /*
+	 TODO:
+		 Write functions to sort Packets into Connections
+ */
 
 #define LINE_LEN 16
 
@@ -77,7 +81,7 @@ class CaptureEngine
 	ConsoleMode consoleMode = LiveStream;
 
 	// Switch to show packet data in Live Stream Mode.
-	bool displayPacketData = false;
+	PacketDisplay displayPacketData = HeaderOnly;
 
 	// Captures the interface name during SelectInterface()
 	std::string interfaceName = "Test";
@@ -86,7 +90,16 @@ class CaptureEngine
 	// packets stay on screen longer for longer packets of data.
 	double sleepTime = 0.2;
 
+	// List of Packets captured
 	std::list<Packet> capturedPackets;
+
+	// Halts capturing if changed
+	bool continueCapturing = true;
+
+	// Prints the interfaces
+	void ifprint(pcap_if_t *d, int i);
+	// IP to string conversion
+	char * iptos(u_long in);
 
 public:
 	CaptureEngine();
@@ -107,7 +120,7 @@ public:
 	void SetConsoleMode(ConsoleMode cm);
 
 	// Set the way live stream is displayed
-	void SetLiveStreamDisplay(bool);
+	void SetLiveStreamDisplay(PacketDisplay);
 
 	// Taps into the WinPCap library to start capturing packets
 	void Capture();
@@ -127,13 +140,6 @@ public:
 	// Getter for Packet List
 	std::list<Packet> GetPacketList();
 
+	void SetContinueCapturing(bool);
 
-	// Prints the interfaces
-	void ifprint(pcap_if_t *d, int i);
-	// IP to string conversion
-	char * iptos(u_long in);
 };
-
-/*
-	Structures
-*/
