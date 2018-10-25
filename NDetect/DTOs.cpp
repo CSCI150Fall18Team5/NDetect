@@ -2,6 +2,27 @@
 #include "DTOs.h"
 
 
+/*
+================================================================================
+	TCP/IP Function Implementaions
+================================================================================
+*/
+
+bool ip_address::operator==(const ip_address & other)
+{
+	// Return true if all bytes match
+	if (
+		this->byte1 == other.byte1 &&
+		this->byte2 == other.byte2 &&
+		this->byte3 == other.byte3 &&
+		this->byte4 == other.byte4
+		) {
+		return true;
+	}
+	// Else false
+	return false;
+}
+
 /*	
 ================================================================================
 	Packet Function Implementaions
@@ -71,6 +92,77 @@ std::string Packet::GetDestPort()
 */
 
 Connection::Connection() {
-
-
 }
+
+Connection::Connection(Packet pkt)
+{
+	// Call the Base Packet Class constructor
+	Connection::Packet(pkt.capturedTime, pkt.packetBytes, pkt.sourceIpAddr, pkt.sourcePort, pkt.destIpAddr, pkt.destPort);
+
+	// Set the IP Address and Port both directions
+	this->sourceIpAddr = pkt.sourceIpAddr;
+	this->sourcePort = pkt.sourcePort;
+	this->destIpAddr = pkt.destIpAddr;
+	this->destPort = pkt.destPort;
+
+	// Set the string versions of the IP
+	this->destIpString = this->GetDestIP();
+	this->sourceIpString = this->GetSourceIP();
+	this->sourcePortString = this->GetSourcePort();
+	this->destPortString = this->GetDestPort();
+
+	// Connection Total bytes equals the incoming Packet bytes.
+	this->totalBytes = pkt.packetBytes;
+
+	// Increment Packet Count
+	this->packetCount++;
+}
+
+bool Connection::PacketBelongs(Packet pkt)
+{
+	int mode = 0;
+	if (mode == 0) {
+		// Source IP / Port must match packet Source IP / Dest
+		if (
+			sourceIpAddr == pkt.sourceIpAddr &&
+			sourcePort == pkt.sourcePort &&
+			destIpAddr == pkt.destIpAddr &&
+			destPort == pkt.destPort
+			) return true;
+	}
+	else if (mode == 1) {
+		// Match either direction
+		if (
+			// Source IP Matches either source or dest
+			(sourceIpAddr == pkt.sourceIpAddr || sourceIpAddr == pkt.destIpAddr)
+			&&
+			// Source Port matches either source or Dest
+			(sourcePort == pkt.sourcePort || sourcePort == pkt.destPort)
+			&&
+			// Dest IP Matches either source or dest
+			(destIpAddr == pkt.destIpAddr || destIpAddr == pkt.sourceIpAddr)
+			&&
+			(destPort == pkt.destPort || destPort == pkt.sourcePort)
+			) return true;
+	}
+	return false;
+}
+
+void Connection::AddPacket(Packet pkt)
+{
+	// Increment packet count
+	this->packetCount++;
+	// Add new packet bytes to connection
+	this->totalBytes += pkt.packetBytes;
+}
+
+int Connection::GetTotalBytes()
+{
+	return totalBytes;
+}
+
+int Connection::GetPacketCount()
+{
+	return packetCount;
+}
+

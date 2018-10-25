@@ -18,7 +18,7 @@ enum PacketDisplay
 };
 enum ConsoleMode
 {
-	Statistics, LiveStream, Combo
+	Statistics, LiveStream, Combo, ConnectionsMade
 };
 
 
@@ -32,11 +32,16 @@ enum ThreadID {
 };
 
 /* 4 bytes IP address */
-struct ip_address {
+class ip_address {
+public:
 	u_char byte1;
 	u_char byte2;
 	u_char byte3;
 	u_char byte4;
+
+	// Create the equal operator for easier comparison
+	bool operator==(const ip_address& other);
+
 };
 
 /* IPv4 header */
@@ -72,6 +77,7 @@ struct tcp_header
 // Keeping as a class instead of struct so we can destroy it properly.
 class Packet
 {
+public:
 	// Source IP
 	ip_address sourceIpAddr;
 	// Source Port
@@ -94,14 +100,12 @@ class Packet
 	// Packet Byte Length
 	int packetBytes;
 
-public:
-
 	// Blank
 	Packet();
 	// Fills out TCP/IP info
 	Packet(tm cTime, int bytes, ip_address sourceIP, u_short sourcePort, ip_address destIP, u_short destPort);
 
-	// Getter / Setters
+	// String versions
 	std::string GetSourceIP();
 	std::string GetSourcePort();
 	std::string GetDestIP();
@@ -110,15 +114,25 @@ public:
 };
 
 
-//  Inherits from Packet to automatically have TCP/IP information.
-class Connection : private Packet {
+// Inherits from Packet to automatically have TCP/IP information.
+// Used to match new packets coming into the system
+class Connection : public Packet {
 
-	// Store the packets of this connection there
-	std::stack<Packet> packets;
+	// Number of packets that match this connection
+	int packetCount = 0;
+
+	// Combined length of packets for this connection
+	int totalBytes = 0;
+
+public:
 
 	Connection();
+	// Contructor to set the connection endpoints (IP:port -> IP:port)
 	Connection(Packet pkt);
 
-	void AddPacket(Packet newPkt);
+	bool PacketBelongs(Packet pkt);
+	void AddPacket(Packet pkt);
 
+	int GetTotalBytes();
+	int GetPacketCount();
 };

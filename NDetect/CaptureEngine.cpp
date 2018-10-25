@@ -68,7 +68,7 @@ void CaptureEngine::Capture()
 	// Open the device 
 	if ((pCapObj = pcap_open(interfaceName.c_str(),
 		100 /*snaplen*/,
-		captureMode /*flags*/,
+		0 /*flags*/,
 		20 /*read timeout*/,
 		NULL /* remote authentication */,
 		errbuf)
@@ -100,21 +100,15 @@ void CaptureEngine::CaptureLoop()
 		// Extract TCP/IP Information and create our Packet object
 		DecodePacket();
 
-		// Handle Console Display 
-		if (consoleMode == LiveStream) {
 
-			// Display the time, Source/Dest IP addrs and ports.
-			DisplayPacketHeader();
-
-			// Displays Packet data
-			if (displayPacketData) {
-				// Print out the inner packet data.
-				DisplayPacketData();
-				// Sleep a short while so that larger packets stay visible
-				Sleep(sleepTime*header->caplen * 5);
-				printf("\n\n");
-			}			
-		}			
+		// Display changes to the 
+		Display();
+		
+		/* ZS
+		May experiment with threading the display function... 
+		std::thread displayThread(&CaptureEngine::Display, this);
+		*/
+		
 	}
 
 	// If we stop the output by triggering CTRL+C
@@ -153,9 +147,49 @@ void CaptureEngine::DecodePacket()
 	// --------------- END Copywritten Code ---------------
 
 	// Create our Packet object, and push into our list
-	capturedPackets.push_front(
-			Packet(ltime, header->len, ih->saddr, sport, ih->daddr, dport)
-	);
+	Packet pkt = Packet(ltime, header->len, ih->saddr, sport, ih->daddr, dport);
+	capturedPackets.push_front(pkt);
+
+	// Attempt to create a Connection or update existing Connection from this packet
+	CreateOrUpdateConnection(pkt);
+
+}
+
+void CaptureEngine::Display()
+{
+	// Handle Console Display 
+	if (consoleMode == LiveStream) {
+
+		// Display the time, Source/Dest IP addrs and ports.
+		DisplayPacketHeader();
+
+		// Displays Packet data
+		if (displayPacketData) {
+			// Print out the inner packet data.
+			DisplayPacketData();
+			// Sleep a short while so that larger packets stay visible
+			Sleep(sleepTime*header->caplen * 5);
+			printf("\n\n");
+		}
+	}
+	else if (consoleMode == ConnectionsMade) {
+		system("cls");
+		// printf("Current Connections: \n\r");
+		printf("| Packet Count: %i \t| Connection Count: %i\t| \n\r", capturedPackets.size(), connectionCount);
+		printf("------------------------------------------------------------------------\n\r");
+		printf(" Bytes \t| Packets\t| Source_IP:Port \t| Destination_IP:Port \n\r");
+		printf("========================================================================\n\r");
+		// Only show the 25 newest Connections
+		int max = (connectionCount - 30 >= 0) ? connectionCount - 30 : 0;
+		for (int i = connectionCount - 1; i > max; i--)
+		{
+			Connection con = connections[i];
+			// printf("|> %s : %s --> %s : %s", con.sourceIpString, con.sourcePortString, con.destIpString, con.destPortString );
+			printf(" %i \t| %i \t\t| %s:%s \t| %s:%s \n", con.GetTotalBytes(), con.GetPacketCount(), con.sourceIpString.c_str(), con.sourcePortString.c_str(), con.destIpString.c_str(), con.destPortString.c_str());
+			// std::cout << "|> {" << i << "} " << con.sourceIpString << con.sourcePortString << con.destIpString << con.destPortString << "\n";
+		}
+		Sleep(30);
+	}
 }
 
 
@@ -225,6 +259,29 @@ std::list<Packet> CaptureEngine::GetPacketList()
 void CaptureEngine::SetContinueCapturing(bool val)
 {
 	this->continueCapturing = val;
+}
+
+void CaptureEngine::CreateOrUpdateConnection(Packet pkt)
+{
+	// Check each one
+	for (size_t i = 0; i < connectionCount; i++)
+	{
+		// Test Connection obtained from the front of the list
+		Connection con = connections[i];
+
+		// Check if the packet belongs in this connection
+		if (con.PacketBelongs(pkt)) {
+			// Add the Packet to this connection
+			connections[i].AddPacket(pkt);
+			// End the loop.
+			return;
+		}
+	}
+	
+	// No matching Connections found, create a new one.
+	Connection newConn(pkt);
+	connections[connectionCount++] = newConn;
+
 }
 
 
