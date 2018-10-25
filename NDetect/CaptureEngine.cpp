@@ -1,5 +1,7 @@
 #include "pch.h"
 #include "CaptureEngine.h"
+#include <iostream>
+#include <string>
 
 
 CaptureEngine::CaptureEngine()
@@ -81,8 +83,16 @@ void CaptureEngine::Capture()
 	// Free the devices, since we choose ours already.
 	pcap_freealldevs(alldevs);
 
+	// Ask if they want to target by IP
+	//captureEngine.SetIP_target();
+
+	std::cout << "Enter target IP address: \n";
+	std::cin >> IP_target;
+
 	// Now that the pCapObj is created, we can just tap into the capture stream.
 	this->CaptureLoop();
+
+
 
 	return;
 }
@@ -105,6 +115,11 @@ void CaptureEngine::CaptureLoop()
 
 			// Display the time, Source/Dest IP addrs and ports.
 			DisplayPacketHeader();
+			
+			// introducing Target IP
+			DisplayPacketByIP(this->IP_target);
+			
+
 
 			// Displays Packet data
 			if (displayPacketData) {
@@ -180,6 +195,19 @@ void CaptureEngine::DisplayPacketHeader() {
 	// print pkt timestamp and pkt len
 	// printf("%ld:%ld (%ld)\n", header->ts.tv_sec, header->ts.tv_usec, header->len);
 	
+}
+
+void CaptureEngine::DisplayPacketByIP(std::string ipTarget)
+{
+	///* 4 bytes IP address */
+	//struct ip_address {
+	//	u_char byte1;
+	//	u_char byte2;
+	//	u_char byte3;
+	//	u_char byte4;
+	//};
+	u_char firstByte = (u_char)ipTarget[0];
+	std::cout << "fistByte " << firstByte << "\n";
 }
 
 void CaptureEngine::DisplayPacketData()

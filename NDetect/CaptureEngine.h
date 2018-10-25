@@ -2,6 +2,8 @@
 
 #include "pch.h"
 #include "DTOs.h"
+#include <iostream>
+#include <string>
 
 
 /* Portions of the code contained in this file, and CaptureEngine.cpp require this copyright.
@@ -101,6 +103,9 @@ class CaptureEngine
 	// IP to string conversion
 	char * iptos(u_long in);
 
+	// Target IP
+	std::string IP_target;
+
 public:
 	CaptureEngine();
 	~CaptureEngine();
@@ -141,5 +146,8 @@ public:
 	std::list<Packet> GetPacketList();
 
 	void SetContinueCapturing(bool);
+
+	// Display by given IP address
+	void DisplayPacketByIP(std::string ipTarget);
 
 };
