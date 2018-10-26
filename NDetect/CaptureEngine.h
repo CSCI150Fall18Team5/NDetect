@@ -73,9 +73,14 @@ class CaptureEngine
 
 	// Configuration Vars
 
-	// Determines capture mode. Mode: 1 = Promiscuous, 0 = Normal
-	// Set SetCaptureMode() for more details
-	int captureMode = 0;
+	/* Determines capture mode. 
+	1 = Defines if the adapter has to go in promiscuous mode.
+	2 = Defines if the data trasfer(in case of a remote capture) has to be done with UDP protocol.
+	4 = Defines if the remote probe will capture its own generated traffic.
+	8 = Defines if the local adapter will capture its own generated traffic.
+	16 = This flag configures the adapter for maximum responsiveness.
+	// Set SetCaptureMode() for more details */
+	int captureMode = 8;
 
 	// Set the console visualization mode
 	ConsoleMode consoleMode = LiveStream;
@@ -92,6 +97,10 @@ class CaptureEngine
 
 	// List of Packets captured
 	std::list<Packet> capturedPackets;
+
+	// Connection Array
+	Connection connections[1000];
+	int connectionCount = 0;
 
 	// Halts capturing if changed
 	bool continueCapturing = true;
@@ -131,6 +140,9 @@ public:
 	// Extracts Useful packet info like the IP addrs and Ports
 	void DecodePacket();
 
+	// Handles showing changes in the console.
+	void Display();
+
 	// Displays the packet in the live stream format
 	void DisplayPacketHeader();
 
@@ -141,5 +153,7 @@ public:
 	std::list<Packet> GetPacketList();
 
 	void SetContinueCapturing(bool);
+
+	void CreateOrUpdateConnection(Packet con);
 
 };
