@@ -124,6 +124,9 @@ class Connection : public Packet {
 	// Combined length of packets for this connection
 	int totalBytes = 0;
 
+	// Used for checking how long ago this connection was used
+	struct tm lastPacketTime;
+
 public:
 
 	Connection();
@@ -133,6 +136,8 @@ public:
 	bool PacketBelongs(Packet pkt);
 	void AddPacket(Packet pkt);
 
+	// Getter functions
 	int GetTotalBytes();
 	int GetPacketCount();
+	struct tm GetLastPacketTime();
 };

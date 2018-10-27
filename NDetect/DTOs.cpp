@@ -96,9 +96,6 @@ Connection::Connection() {
 
 Connection::Connection(Packet pkt)
 {
-	// Call the Base Packet Class constructor
-	Connection::Packet(pkt.capturedTime, pkt.packetBytes, pkt.sourceIpAddr, pkt.sourcePort, pkt.destIpAddr, pkt.destPort);
-
 	// Set the IP Address and Port both directions
 	this->sourceIpAddr = pkt.sourceIpAddr;
 	this->sourcePort = pkt.sourcePort;
@@ -113,6 +110,9 @@ Connection::Connection(Packet pkt)
 
 	// Connection Total bytes equals the incoming Packet bytes.
 	this->totalBytes = pkt.packetBytes;
+
+	// Set the packet Time
+	this->lastPacketTime = pkt.capturedTime;
 
 	// Increment Packet Count
 	this->packetCount++;
@@ -151,9 +151,12 @@ bool Connection::PacketBelongs(Packet pkt)
 void Connection::AddPacket(Packet pkt)
 {
 	// Increment packet count
-	this->packetCount++;
+	packetCount++;
 	// Add new packet bytes to connection
-	this->totalBytes += pkt.packetBytes;
+	totalBytes += pkt.packetBytes;
+	// Update the last packet time
+	lastPacketTime = pkt.capturedTime;
+
 }
 
 int Connection::GetTotalBytes()
@@ -164,5 +167,10 @@ int Connection::GetTotalBytes()
 int Connection::GetPacketCount()
 {
 	return packetCount;
+}
+
+tm Connection::GetLastPacketTime()
+{
+	return lastPacketTime;
 }
 

@@ -97,6 +97,7 @@ class CaptureEngine
 
 	// List of Packets captured
 	std::list<Packet> capturedPackets;
+	int packetLimit = 20000;
 
 	// Connection Array
 	Connection connections[1000];
@@ -152,7 +153,11 @@ public:
 	// Getter for Packet List
 	std::list<Packet> GetPacketList();
 
+	// Used for CTRL+C sequence
 	void SetContinueCapturing(bool);
+
+	// Setter for Packet Limit
+	void SetPacketLimit(int max);
 
 	void CreateOrUpdateConnection(Packet con);
 
