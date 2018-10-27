@@ -1,5 +1,7 @@
 #include "pch.h"
 #include "CaptureEngine.h"
+#include <string>
+#include <iostream>
 
 
 CaptureEngine::CaptureEngine()
@@ -81,6 +83,7 @@ void CaptureEngine::Capture()
 	// Free the devices, since we choose ours already.
 	pcap_freealldevs(alldevs);
 
+
 	// Now that the pCapObj is created, we can just tap into the capture stream.
 	this->CaptureLoop();
 
@@ -100,6 +103,9 @@ void CaptureEngine::CaptureLoop()
 		// Extract TCP/IP Information and create our Packet object
 		DecodePacket();
 
+
+		// display target ip
+		ShowTargetIP();
 
 		// Display changes to the console
 		Display();
@@ -355,21 +361,19 @@ char * CaptureEngine::iptos(u_long in)
 
 
 // Set target IP
-void CaptureEngine::SetTargetIP(std::string targetIP)
+void CaptureEngine::SetTargetIP(std::string IP)
 {
-	this->targetIP = targetIP;
+	targetIP = IP;
 }
 
 // Get target IP
 std::string CaptureEngine::GetTargetIP()
 {
-	return this->targetIP;
+	return targetIP;
 }
 
 // Method to show Target IP
 void CaptureEngine::ShowTargetIP()
 {
-	std::cout << "Target IP: ";
-	printf("%s",targetIP);
-	std::cout<< "\n";
+	std::cout << "Target IP: " << targetIP<< "\n";
 }
