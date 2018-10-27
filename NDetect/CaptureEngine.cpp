@@ -148,6 +148,12 @@ void CaptureEngine::DecodePacket()
 
 	// Create our Packet object, and push into our list
 	Packet pkt = Packet(ltime, header->len, ih->saddr, sport, ih->daddr, dport);
+	
+	// Test for the limit on captured packets, and pop the back if we've reached it.
+	while (capturedPackets.size() >= packetLimit) {
+		capturedPackets.pop_back();
+	}
+	// Push this packet into the list.
 	capturedPackets.push_front(pkt);
 
 	// Attempt to create a Connection or update existing Connection from this packet
@@ -176,16 +182,22 @@ void CaptureEngine::Display()
 		system("cls");
 		// printf("Current Connections: \n\r");
 		printf("| Packet Count: %i \t| Connection Count: %i\t| \n\r", capturedPackets.size(), connectionCount);
-		printf("------------------------------------------------------------------------\n\r");
-		printf(" Bytes \t| Packets\t| Source_IP:Port \t| Destination_IP:Port \n\r");
-		printf("========================================================================\n\r");
+		printf("-----------------------------------------------------------------------------------------\n\r");
+		printf(" Bytes \t| Packets\t|  Time \t| Source_IP:Port \t| Destination_IP:Port \n\r");
+		printf("=========================================================================================\n\r");
 		// Only show the 25 newest Connections
 		int max = (connectionCount - 30 >= 0) ? connectionCount - 30 : 0;
 		for (int i = connectionCount - 1; i > max; i--)
 		{
 			Connection con = connections[i];
+
+			// Convert time to readable
+			char pktTime[16];
+			tm pktTM = con.GetLastPacketTime();
+			strftime(pktTime, sizeof pktTime, "%H:%M:%S", &pktTM);
+
 			// printf("|> %s : %s --> %s : %s", con.sourceIpString, con.sourcePortString, con.destIpString, con.destPortString );
-			printf(" %i \t| %i \t\t| %s:%s \t| %s:%s \n", con.GetTotalBytes(), con.GetPacketCount(), con.sourceIpString.c_str(), con.sourcePortString.c_str(), con.destIpString.c_str(), con.destPortString.c_str());
+			printf(" %i \t| %i \t\t| %s \t| %s:%s \t| %s:%s \n", con.GetTotalBytes(), con.GetPacketCount(), pktTime, con.sourceIpString.c_str(), con.sourcePortString.c_str(), con.destIpString.c_str(), con.destPortString.c_str());
 			// std::cout << "|> {" << i << "} " << con.sourceIpString << con.sourcePortString << con.destIpString << con.destPortString << "\n";
 		}
 		Sleep(30);
@@ -259,6 +271,15 @@ std::list<Packet> CaptureEngine::GetPacketList()
 void CaptureEngine::SetContinueCapturing(bool val)
 {
 	this->continueCapturing = val;
+}
+
+void CaptureEngine::SetPacketLimit(int max)
+{
+	// Must be between 0 and maximum integer value
+	if (max >= 0 and max <= INT32_MAX)
+		packetLimit = max;
+	else
+		packetLimit = 20000;
 }
 
 void CaptureEngine::CreateOrUpdateConnection(Packet pkt)
