@@ -110,6 +110,9 @@ class CaptureEngine
 	// IP to string conversion
 	char * iptos(u_long in);
 
+	// Target IP from the user
+	std::string targetIP; 
+
 public:
 	CaptureEngine();
 	~CaptureEngine();
@@ -156,4 +159,13 @@ public:
 
 	void CreateOrUpdateConnection(Packet con);
 
+
+	// Set target IP
+	void SetTargetIP(std::string targetIP);
+
+	// Get target IP
+	std::string GetTargetIP();
+	
+	// Method to show Target IP
+	void ShowTargetIP();
 };

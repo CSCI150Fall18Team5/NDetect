@@ -67,7 +67,7 @@ void CaptureEngine::Capture()
 {	
 	// Open the device 
 	if ((pCapObj = pcap_open(interfaceName.c_str(),
-		100 /*snaplen*/,
+		100 /*snaplen - integer which defines the maximum number of bytes to be captured by pcap*/,
 		0 /*flags*/,
 		20 /*read timeout*/,
 		NULL /* remote authentication */,
@@ -101,7 +101,7 @@ void CaptureEngine::CaptureLoop()
 		DecodePacket();
 
 
-		// Display changes to the 
+		// Display changes to the console
 		Display();
 		
 		/* ZS
@@ -157,6 +157,10 @@ void CaptureEngine::DecodePacket()
 
 void CaptureEngine::Display()
 {
+	// print current IP target
+	printf("Current Target: \n");
+	ShowTargetIP();
+
 	// Handle Console Display 
 	if (consoleMode == LiveStream) {
 
@@ -174,6 +178,8 @@ void CaptureEngine::Display()
 	}
 	else if (consoleMode == ConnectionsMade) {
 		system("cls");
+
+
 		// printf("Current Connections: \n\r");
 		printf("| Packet Count: %i \t| Connection Count: %i\t| \n\r", capturedPackets.size(), connectionCount);
 		printf("------------------------------------------------------------------------\n\r");
@@ -345,4 +351,25 @@ char * CaptureEngine::iptos(u_long in)
 	which = (which + 1 == IPTOSBUFFERS ? 0 : which + 1);
 	_snprintf_s(output[which], sizeof(output[which]), sizeof(output[which]), "%d.%d.%d.%d", p[0], p[1], p[2], p[3]);
 	return output[which];
+}
+
+
+// Set target IP
+void CaptureEngine::SetTargetIP(std::string targetIP)
+{
+	this->targetIP = targetIP;
+}
+
+// Get target IP
+std::string CaptureEngine::GetTargetIP()
+{
+	return this->targetIP;
+}
+
+// Method to show Target IP
+void CaptureEngine::ShowTargetIP()
+{
+	std::cout << "Target IP: ";
+	printf("%s",targetIP);
+	std::cout<< "\n";
 }
