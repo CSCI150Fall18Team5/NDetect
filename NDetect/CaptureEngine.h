@@ -104,7 +104,7 @@ class CaptureEngine
 	char * iptos(u_long in);
 
 	// Target IP
-	std::string IP_target;
+	std::string IP_target = "";
 
 public:
 	CaptureEngine();
@@ -148,6 +148,12 @@ public:
 	void SetContinueCapturing(bool);
 
 	// Display by given IP address
-	void DisplayPacketByIP(std::string ipTarget);
+	void DisplayPacketByIP();
+
+	// Set Target IP
+	void setTargetIP(std::string IP_target);
+
+	// Get TargetIP
+	std::string getTargetIP();
 
 };

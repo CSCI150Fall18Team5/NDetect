@@ -84,10 +84,11 @@ void CaptureEngine::Capture()
 	pcap_freealldevs(alldevs);
 
 	// Ask if they want to target by IP
-	//captureEngine.SetIP_target();
-
-	std::cout << "Enter target IP address: \n";
-	std::cin >> IP_target;
+	if (IP_target != "")
+	{
+		this->DisplayPacketByIP();
+	}
+		
 
 	// Now that the pCapObj is created, we can just tap into the capture stream.
 	this->CaptureLoop();
@@ -114,11 +115,7 @@ void CaptureEngine::CaptureLoop()
 		if (consoleMode == LiveStream) {
 
 			// Display the time, Source/Dest IP addrs and ports.
-			DisplayPacketHeader();
-			
-			// introducing Target IP
-			DisplayPacketByIP(this->IP_target);
-			
+			DisplayPacketHeader();	
 
 
 			// Displays Packet data
@@ -197,7 +194,7 @@ void CaptureEngine::DisplayPacketHeader() {
 	
 }
 
-void CaptureEngine::DisplayPacketByIP(std::string ipTarget)
+void CaptureEngine::DisplayPacketByIP()
 {
 	///* 4 bytes IP address */
 	//struct ip_address {
@@ -206,7 +203,7 @@ void CaptureEngine::DisplayPacketByIP(std::string ipTarget)
 	//	u_char byte3;
 	//	u_char byte4;
 	//};
-	u_char firstByte = (u_char)ipTarget[0];
+	u_char firstByte = (u_char)this->IP_target[0];
 	std::cout << "fistByte " << firstByte << "\n";
 }
 
@@ -316,4 +313,15 @@ char * CaptureEngine::iptos(u_long in)
 	which = (which + 1 == IPTOSBUFFERS ? 0 : which + 1);
 	_snprintf_s(output[which], sizeof(output[which]), sizeof(output[which]), "%d.%d.%d.%d", p[0], p[1], p[2], p[3]);
 	return output[which];
+}
+// Set Target IP
+void CaptureEngine::setTargetIP(std::string IP_target)
+{
+	this->IP_target = IP_target;
+}
+
+// Get TargetIP
+std::string CaptureEngine::getTargetIP()
+{
+	return this->IP_target;
 }
