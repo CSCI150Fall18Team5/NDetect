@@ -1,5 +1,7 @@
 #include "pch.h"
 #include "CaptureEngine.h"
+#include <string>
+
 //
 // NOTE: remember to include WPCAP and HAVE_REMOTE among your
 // preprocessor definitions.
@@ -25,6 +27,10 @@ void ThreadPrint();
 // Ctrl-C handler declaration.
 BOOL WINAPI CtrlHandler(DWORD fdwCtrlType);
 
+// Holds taget IP
+std::string targetIP="";
+
+
 int main(int argc, char **argv)
 {
 	// Configures the program to handle CTRL+C and other events when focused on the console.
@@ -33,6 +39,11 @@ int main(int argc, char **argv)
 	// Displays the Interfaces available to capture packets.
 	// Records the user choice
 	captureEngine.SelectInterface();
+
+	// Enter IP filter
+	std::cout << "Target IP: \n";
+	std::cin >> targetIP;
+	captureEngine.SetTargetIP(targetIP);
 
 	// Set the capture mode
 	// captureEngine.SetCaptureMode(0);
