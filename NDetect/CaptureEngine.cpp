@@ -169,15 +169,6 @@ void CaptureEngine::DecodePacket()
 
 void CaptureEngine::Display()
 {
-	// figrue out what to compare
-	//if (GetTargetIP() == GetSourceIP())
-	//{
-	//	// print current IP target
-	//	printf("Current Target: \n");
-	//	ShowTargetIP();
-	//}
-
-
 	// Handle Console Display 
 	if (consoleMode == LiveStream) {
 
@@ -213,9 +204,14 @@ void CaptureEngine::Display()
 			tm pktTM = con.GetLastPacketTime();
 			strftime(pktTime, sizeof pktTime, "%H:%M:%S", &pktTM);
 
-			// printf("|> %s : %s --> %s : %s", con.sourceIpString, con.sourcePortString, con.destIpString, con.destPortString );
-			printf(" %i \t| %i \t\t| %s \t| %s:%s \t| %s:%s \n", con.GetTotalBytes(), con.GetPacketCount(), pktTime, con.sourceIpString.c_str(), con.sourcePortString.c_str(), con.destIpString.c_str(), con.destPortString.c_str());
-			// std::cout << "|> {" << i << "} " << con.sourceIpString << con.sourcePortString << con.destIpString << con.destPortString << "\n";
+
+			if (GetTargetIP() == con.sourceIpString.c_str() || GetTargetIP() =="") {
+				// printf("|> %s : %s --> %s : %s", con.sourceIpString, con.sourcePortString, con.destIpString, con.destPortString );
+				printf(" %i \t| %i \t\t| %s \t| %s:%s \t| %s:%s \n", con.GetTotalBytes(), con.GetPacketCount(), pktTime, con.sourceIpString.c_str(), con.sourcePortString.c_str(), con.destIpString.c_str(), con.destPortString.c_str());
+				// std::cout << "|> {" << i << "} " << con.sourceIpString << con.sourcePortString << con.destIpString << con.destPortString << "\n";
+			}
+
+
 		}
 		Sleep(30);
 	}
