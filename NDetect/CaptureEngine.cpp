@@ -100,12 +100,12 @@ void CaptureEngine::CaptureLoop()
 			/* Timeout elapsed */
 			continue;
 
+	
+		
+
 		// Extract TCP/IP Information and create our Packet object
 		DecodePacket();
 
-
-		// display target ip
-		ShowTargetIP();
 
 		// Display changes to the console
 		Display();
@@ -189,7 +189,11 @@ void CaptureEngine::Display()
 
 
 		// printf("Current Connections: \n\r");
-		printf("| Packet Count: %i \t| Connection Count: %i\t| \n\r", capturedPackets.size(), connectionCount);
+		printf("| Packet Count: %i \t| Connection Count: %i\t| ", capturedPackets.size(), connectionCount);
+		
+		// display target ip
+		ShowTargetIP();
+
 		printf("-----------------------------------------------------------------------------------------\n\r");
 		printf(" Bytes \t| Packets\t|  Time \t| Source_IP:Port \t| Destination_IP:Port \n\r");
 		printf("=========================================================================================\n\r");
@@ -397,5 +401,5 @@ std::string CaptureEngine::GetTargetIP()
 // Method to show Target IP
 void CaptureEngine::ShowTargetIP()
 {
-	std::cout << "Target IP: " << targetIP<< "\n";
+	std::cout << "Target IP: " << targetIP << " \t|\n\r";
 }
