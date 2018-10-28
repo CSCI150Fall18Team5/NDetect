@@ -8,6 +8,11 @@
 //
 
 
+//Our Filtering engine should also be able to determine the protocol(Determined by Port number) 
+//and filter packets by that port number / protocol.Ideally it should be able to accept 
+//either the port number, or the Protocol as a string, such as "http"
+
+
 // Handles all the Packet Capture Logic
 CaptureEngine captureEngine;
 
