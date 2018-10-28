@@ -30,6 +30,9 @@ BOOL WINAPI CtrlHandler(DWORD fdwCtrlType);
 // Holds taget IP
 std::string targetIP="";
 
+// temp choice target
+std::string choice;
+
 
 int main(int argc, char **argv)
 {
@@ -41,9 +44,15 @@ int main(int argc, char **argv)
 	captureEngine.SelectInterface();
 
 	// Enter IP filter
-	std::cout << "Target IP: \n";
-	std::cin >> targetIP;
-	captureEngine.SetTargetIP(targetIP);
+	std::cout << "Do you want to enter an IP filter (Y/N)?\n";
+	std::cin >> choice;
+	if (choice == "Y" || choice == "y")
+	{
+		std::cout << "Target IP: \n";
+		std::cin >> targetIP;
+		captureEngine.SetTargetIP(targetIP);
+	}
+
 
 	// Set the capture mode
 	// captureEngine.SetCaptureMode(0);
