@@ -163,9 +163,14 @@ void CaptureEngine::DecodePacket()
 
 void CaptureEngine::Display()
 {
-	// print current IP target
-	printf("Current Target: \n");
-	ShowTargetIP();
+	// figrue out what to compare
+	//if (GetTargetIP() == GetSourceIP())
+	//{
+	//	// print current IP target
+	//	printf("Current Target: \n");
+	//	ShowTargetIP();
+	//}
+
 
 	// Handle Console Display 
 	if (consoleMode == LiveStream) {
