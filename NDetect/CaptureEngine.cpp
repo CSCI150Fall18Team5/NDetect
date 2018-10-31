@@ -185,6 +185,11 @@ void CaptureEngine::Display()
 		}
 	}
 	else if (consoleMode == ConnectionsMade) {
+
+		
+		/*=====================================
+		!!!	Clears the Console of all text !!!
+		======================================= */
 		system("cls");
 
 

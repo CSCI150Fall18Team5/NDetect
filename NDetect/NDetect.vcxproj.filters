@@ -38,5 +38,11 @@
     <ClCompile Include="DTOs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="testWinpCap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="WellKnownPorts.txt" />
   </ItemGroup>
 </Project>
