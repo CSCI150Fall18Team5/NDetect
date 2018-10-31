@@ -2,7 +2,7 @@
 #include "CaptureEngine.h"
 #include <string>
 #include <iostream>
-
+#include "Filter.h"
 
 CaptureEngine::CaptureEngine()
 {
@@ -192,7 +192,7 @@ void CaptureEngine::Display()
 		printf("| Packet Count: %i \t| Connection Count: %i\t| ", capturedPackets.size(), connectionCount);
 		
 		// display target ip
-		ShowTargetIP();
+		//ShowTargetIP();
 
 		printf("-----------------------------------------------------------------------------------------\n\r");
 		printf(" Bytes \t| Packets\t|  Time \t| Source_IP:Port \t| Destination_IP:Port \n\r");
@@ -209,11 +209,11 @@ void CaptureEngine::Display()
 			strftime(pktTime, sizeof pktTime, "%H:%M:%S", &pktTM);
 
 
-			if (GetTargetIP() == con.sourceIpString.c_str() || GetTargetIP() =="") {
+			//if (GetTargetIP() == con.sourceIpString.c_str() || GetTargetIP() =="") {
 				// printf("|> %s : %s --> %s : %s", con.sourceIpString, con.sourcePortString, con.destIpString, con.destPortString );
 				printf(" %i \t| %i \t\t| %s \t| %s:%s \t| %s:%s \n", con.GetTotalBytes(), con.GetPacketCount(), pktTime, con.sourceIpString.c_str(), con.sourcePortString.c_str(), con.destIpString.c_str(), con.destPortString.c_str());
 				// std::cout << "|> {" << i << "} " << con.sourceIpString << con.sourcePortString << con.destIpString << con.destPortString << "\n";
-			}
+			//}
 
 
 		}
@@ -386,20 +386,3 @@ char * CaptureEngine::iptos(u_long in)
 }
 
 
-// Set target IP
-void CaptureEngine::SetTargetIP(std::string IP)
-{
-	targetIP = IP;
-}
-
-// Get target IP
-std::string CaptureEngine::GetTargetIP()
-{
-	return targetIP;
-}
-
-// Method to show Target IP
-void CaptureEngine::ShowTargetIP()
-{
-	std::cout << "Target IP: " << targetIP << " \t|\n\r";
-}
