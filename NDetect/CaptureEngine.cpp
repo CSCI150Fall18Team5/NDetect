@@ -70,7 +70,7 @@ void CaptureEngine::Capture()
 	// Open the device 
 	if ((pCapObj = pcap_open(interfaceName.c_str(),
 		100 /*snaplen - integer which defines the maximum number of bytes to be captured by pcap*/,
-		0 /*flags*/,
+		captureMode /*flags*/,
 		20 /*read timeout*/,
 		NULL /* remote authentication */,
 		errbuf)
@@ -83,7 +83,6 @@ void CaptureEngine::Capture()
 	// Free the devices, since we choose ours already.
 	pcap_freealldevs(alldevs);
 
-
 	// Now that the pCapObj is created, we can just tap into the capture stream.
 	this->CaptureLoop();
 
@@ -93,6 +92,9 @@ void CaptureEngine::Capture()
 // Loop function that uses packets from the PCAP interface to display packet data.
 void CaptureEngine::CaptureLoop()
 {
+	// Start the Timeout Thread
+	threadTimeout = std::thread(&CaptureEngine::CheckTimeout, this);
+	
 	// Read the packets 
 	while ((res = pcap_next_ex(pCapObj, &header, &pkt_data)) >= 0 && continueCapturing)
 	{
@@ -100,12 +102,8 @@ void CaptureEngine::CaptureLoop()
 			/* Timeout elapsed */
 			continue;
 
-	
-		
-
 		// Extract TCP/IP Information and create our Packet object
 		DecodePacket();
-
 
 		// Display changes to the console
 		Display();
@@ -113,8 +111,10 @@ void CaptureEngine::CaptureLoop()
 		/* ZS
 		May experiment with threading the display function... 
 		std::thread displayThread(&CaptureEngine::Display, this);
-		*/
-		
+		*/	
+
+		// Erase Connections older than the timeout
+		// CheckTimeout();
 	}
 
 	// If we stop the output by triggering CTRL+C
@@ -139,6 +139,15 @@ void CaptureEngine::DecodePacket()
 	localtime_s(&ltime, &local_tv_sec);
 	strftime(timestr, sizeof timestr, "%H:%M:%S", &ltime);
 
+	// Get the time right now
+	time_t rawTime;
+	time(&rawTime);
+
+	// Create tm with local time
+	tm rightNow;
+	// Update rightNow with rawTime
+	localtime_s(&rightNow, &rawTime);
+
 	// retrieve the position of the ip header 
 	ih = (ip_header *)(pkt_data + 14); //length of ethernet header
 
@@ -153,7 +162,7 @@ void CaptureEngine::DecodePacket()
 	// --------------- END Copywritten Code ---------------
 
 	// Create our Packet object, and push into our list
-	Packet pkt = Packet(ltime, header->len, ih->saddr, sport, ih->daddr, dport);
+	Packet pkt = Packet(rightNow, header->len, ih->saddr, sport, ih->daddr, dport);
 	
 	// Test for the limit on captured packets, and pop the back if we've reached it.
 	while (capturedPackets.size() >= packetLimit) {
@@ -185,16 +194,15 @@ void CaptureEngine::Display()
 		}
 	}
 	else if (consoleMode == ConnectionsMade) {
-
 		
+		mux.lock();
+
 		/*=====================================
 		!!!	Clears the Console of all text !!!
 		======================================= */
 		system("cls");
 
-
-		// printf("Current Connections: \n\r");
-		printf("| Packet Count: %i \t| Connection Count: %i\t| ", capturedPackets.size(), connectionCount);
+		printf("| Packet Count: %i \t| Connection Count: %i\t| ", capturedPackets.size(), connections.size());
 		
 		// display target ip
 		ShowTargetIP();
@@ -202,28 +210,41 @@ void CaptureEngine::Display()
 		printf("-----------------------------------------------------------------------------------------\n\r");
 		printf(" Bytes \t| Packets\t|  Time \t| Source_IP:Port \t| Destination_IP:Port \n\r");
 		printf("=========================================================================================\n\r");
-		// Only show the 25 newest Connections
-		int max = (connectionCount - 30 >= 0) ? connectionCount - 30 : 0;
-		for (int i = connectionCount - 1; i > max; i--)
+		
+		// Only show the 30 newest Connections, obtained by getting the 30 latest packets
+		// std::list<Packet> last30Packets = GetNLastPackets(30);
+		
+		const int connectionLimit = 30;
+		int counter = 0;
+		// C++ magic right here.
+		// Newer for loop using auto tree iterator.
+		for (auto& c : connections)
 		{
-			Connection con = connections[i];
+			if (counter >= connectionLimit) {
+				break;
+			}
+			else {
+				counter++;
+			}
+
+			// Get the second value of the map, that being the connection.
+			Connection con = c.second;
 
 			// Convert time to readable
 			char pktTime[16];
 			tm pktTM = con.GetLastPacketTime();
 			strftime(pktTime, sizeof pktTime, "%H:%M:%S", &pktTM);
 
-
 			if (GetTargetIP() == con.sourceIpString.c_str() || GetTargetIP() =="") {
 				// printf("|> %s : %s --> %s : %s", con.sourceIpString, con.sourcePortString, con.destIpString, con.destPortString );
 				printf(" %i \t| %i \t\t| %s \t| %s:%s \t| %s:%s \n", con.GetTotalBytes(), con.GetPacketCount(), pktTime, con.sourceIpString.c_str(), con.sourcePortString.c_str(), con.destIpString.c_str(), con.destPortString.c_str());
 				// std::cout << "|> {" << i << "} " << con.sourceIpString << con.sourcePortString << con.destIpString << con.destPortString << "\n";
 			}
-
-
 		}
-		Sleep(30);
+		Sleep(60);
 	}
+
+	mux.unlock();
 }
 
 
@@ -290,6 +311,71 @@ std::list<Packet> CaptureEngine::GetPacketList()
 	return this->capturedPackets;
 }
 
+std::list<Packet> CaptureEngine::GetNLastPackets(int N)
+{
+	// Create temp lists
+	std::list<Packet> cappedPackets = capturedPackets;
+	std::list<Packet> tempList;
+
+	// Go for min(N rounds, number of packets)
+	int min = (cappedPackets.size() < N) ? cappedPackets.size() : N;
+	for (int i = 0; i < min; i++)
+	{
+		// Add the front
+		tempList.push_front(cappedPackets.front());
+		// Pop front
+		cappedPackets.pop_front();
+	}
+
+	return tempList;
+	
+}
+
+std::string CaptureEngine::ConstructKeyString(Packet pkt)
+{
+	// Used for creating the string key.
+	char sKey[9001];
+
+	// Format the key string
+	std::string sIP = pkt.GetSourceIP();
+	std::string sPort = pkt.GetSourcePort();
+
+	std::string dIP = pkt.GetDestIP();
+	std::string dPort = pkt.GetDestPort();
+
+	sprintf_s(sKey, "%s:%s->%s:%s", sIP.c_str(), sPort.c_str(), dIP.c_str(), dPort.c_str());
+	
+	// Return it
+	return sKey;
+}
+
+std::string CaptureEngine::ConstructKeyString(Connection con)
+{
+	// Used for creating the string key.
+	char sKey[9001];
+
+	// Format the key string
+	std::string sIP = con.GetSourceIP();
+	std::string sPort = con.GetSourcePort();
+
+	std::string dIP = con.GetDestIP();
+	std::string dPort = con.GetDestPort();
+
+	sprintf_s(sKey, "%s:%s->%s:%s", sIP.c_str(), sPort.c_str(), dIP.c_str(), dPort.c_str());
+
+	// Return it
+	return sKey;
+}
+
+bool CaptureEngine::ConnectionExists(Packet pkt)
+{
+	std::string key = ConstructKeyString(pkt);
+	if (connections.find(key) != connections.end()) {
+		return true;
+	}
+	return false;
+}
+
 void CaptureEngine::SetContinueCapturing(bool val)
 {
 	this->continueCapturing = val;
@@ -306,25 +392,98 @@ void CaptureEngine::SetPacketLimit(int max)
 
 void CaptureEngine::CreateOrUpdateConnection(Packet pkt)
 {
-	// Check each one
-	for (size_t i = 0; i < connectionCount; i++)
-	{
-		// Test Connection obtained from the front of the list
-		Connection con = connections[i];
-
+	std::string key = ConstructKeyString(pkt);
+	// Build the key string and check if the connection exists.
+	if( ConnectionExists(pkt) ){
+		Connection con = connections.at(key);
 		// Check if the packet belongs in this connection
 		if (con.PacketBelongs(pkt)) {
 			// Add the Packet to this connection
-			connections[i].AddPacket(pkt);
+			connections.at(key).AddPacket(pkt);
 			// End the loop.
 			return;
 		}
 	}
-	
-	// No matching Connections found, create a new one.
-	Connection newConn(pkt);
-	connections[connectionCount++] = newConn;
+	else {
+		// Create and assign the connection.
+		Connection newConn(pkt);
+		
+		// Getting random exceptions here.
+		try {
+			// Maps insert like an array.
+			connections[key] = newConn;
+		} 
+		catch (std::exception ex) {
+			// Silently eat any exceptions.
+		}
+	}
 
+}
+
+void CaptureEngine::CheckTimeout()
+{
+	while (continueCapturing) {
+
+		// Used for the Packets
+		int packetSeconds;
+
+		// Get the time right now
+		time_t rawTime;
+		time(&rawTime);
+
+		// Create tm with local time
+		tm rightNow;
+		// Update rightNow with rawTime
+		localtime_s(&rightNow, &rawTime);
+
+		// Convert min and seconds to seconds. (Minutes * 60) + Seconds 
+		// Subtract Timeout value from seconds
+		int fiveSecondsAgo = (rightNow.tm_min * 60) + (rightNow.tm_sec - timeoutSeconds);
+
+		std::string keysToRemove[1000];
+		int keyCount = 0;
+
+		// Loop through all connections
+		for (auto& con : connections)
+		{
+			// Get the Packet time
+			tm lastPacketTime = con.second.GetLastPacketTime();
+
+			packetSeconds = (lastPacketTime.tm_min * 60) + lastPacketTime.tm_sec;
+
+			// Over the Timeout Limit, erase the connection
+			if (packetSeconds <= fiveSecondsAgo) {
+				// Store this key to remove after the loop
+				keysToRemove[keyCount++] = con.first;
+			}
+		}
+
+		// Unique Lock - Stops all other threads from operating while this thread deletes Connections
+		std::unique_lock<std::mutex> uniqueLock(mux, std::defer_lock);
+		uniqueLock.lock();
+		// Loop through keys and remove the connections
+		for (int i = 0; i < keyCount; i++)
+		{
+			// Remove the connection with the key
+			connections.erase(keysToRemove[i]);
+		}
+		uniqueLock.unlock();
+
+
+		// Wait to try again
+		Sleep(50);
+	}
+
+}
+
+void CaptureEngine::SetTimeout(int seconds)
+{
+	if (seconds > 0 && seconds < 60) {
+		timeoutSeconds = seconds;
+	}
+	else {
+		timeoutSeconds = 10;
+	}
 }
 
 

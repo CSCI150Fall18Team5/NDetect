@@ -159,6 +159,18 @@ void Connection::AddPacket(Packet pkt)
 
 }
 
+bool Connection::operator==(const Connection & other)
+{
+	// Return true if all IPs and Ports match
+	if (this->sourceIpAddr == other.sourceIpAddr &&
+		this->sourcePort == other.sourcePort &&
+		this->destIpAddr == other.destIpAddr &&
+		this->destPort == other.destPort) {
+		return true;
+	}
+	return false;
+}
+
 int Connection::GetTotalBytes()
 {
 	return totalBytes;
