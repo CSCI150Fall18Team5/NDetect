@@ -68,7 +68,7 @@ int main(int argc, char **argv)
 	{
 		std::cout << "Target IP: \n";
 		std::cin >> targetIP;
-		captureEngine.SetTargetIP(targetIP);
+		//captureEngine.SetTargetIP(targetIP);
 	}
 
 	// Set the capture mode

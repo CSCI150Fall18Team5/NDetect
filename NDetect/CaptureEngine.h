@@ -2,6 +2,7 @@
 
 #include "pch.h"
 #include "DTOs.h"
+#include "Filter.h"
 #include <string>
 #include <iostream>
 
@@ -126,8 +127,8 @@ class CaptureEngine
 	// IP to string conversion
 	char * iptos(u_long in);
 
-	// Target IP from the user
-	std::string targetIP=""; 
+	// create a filter object 
+	Filter* myFilter = new Filter();
 
 public:
 	CaptureEngine();
@@ -200,12 +201,5 @@ public:
 	// Sets the internal timeout value in seconds
 	void SetTimeout(int seconds);
 
-	// Set target IP
-	void SetTargetIP(std::string);
 
-	// Get target IP
-	std::string GetTargetIP();
-	
-	// Method to show Target IP
-	void ShowTargetIP();
 };
