@@ -207,6 +207,9 @@ void CaptureEngine::Display()
 		// display target ip
 		ShowTargetIP();
 
+		// Display the Connection Timeout
+		printf(" Connection Timeout: %is \n\r", timeoutSeconds);
+
 		printf("-----------------------------------------------------------------------------------------\n\r");
 		printf(" Bytes \t| Packets\t|  Time \t| Source_IP:Port \t| Destination_IP:Port \n\r");
 		printf("=========================================================================================\n\r");
@@ -331,6 +334,21 @@ std::list<Packet> CaptureEngine::GetNLastPackets(int N)
 	
 }
 
+std::list<Connection> CaptureEngine::GetConnections()
+{
+	// Lock the thread so we can safely access the List.
+	std::unique_lock<std::mutex> uniqueLock(mux, std::defer_lock);
+	uniqueLock.lock();
+	// Make a temp list, fill it with all connections.
+	std::list<Connection> connCopy;
+	for (auto& con : connections) {
+		connCopy.push_back(con.second);
+	}
+	// Unlock, we made our copies
+	uniqueLock.unlock();
+	return connCopy;
+}
+
 std::string CaptureEngine::ConstructKeyString(Packet pkt)
 {
 	// Used for creating the string key.
@@ -399,7 +417,7 @@ void CaptureEngine::CreateOrUpdateConnection(Packet pkt)
 		// Check if the packet belongs in this connection
 		if (con.PacketBelongs(pkt)) {
 			// Add the Packet to this connection
-			connections.at(key).AddPacket(pkt);
+			connections[key].AddPacket(pkt);
 			// End the loop.
 			return;
 		}
@@ -470,8 +488,8 @@ void CaptureEngine::CheckTimeout()
 		uniqueLock.unlock();
 
 
-		// Wait to try again
-		Sleep(50);
+		// Wait to try again for a fifth of the Timeout Time
+		Sleep((DWORD)timeoutSeconds / 5);
 	}
 
 }
@@ -565,5 +583,5 @@ std::string CaptureEngine::GetTargetIP()
 // Method to show Target IP
 void CaptureEngine::ShowTargetIP()
 {
-	std::cout << "Target IP: " << targetIP << " \t|\n\r";
+	std::cout << "Target IP: " << targetIP << " \t|";
 }

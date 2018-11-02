@@ -174,6 +174,9 @@ public:
 	// Gets the last number of packets
 	std::list<Packet> GetNLastPackets(int N);
 
+	// Get a copy of all the current connections in a list
+	std::list<Connection> GetConnections();
+
 	// Constructs the key string for accessing a Connection in connections
 	std::string ConstructKeyString(Packet pkt);
 	std::string ConstructKeyString(Connection con);
@@ -194,7 +197,7 @@ public:
 	// have been idle past the timeoutValue
 	void CheckTimeout();
 
-	// Sets the internal timeout value
+	// Sets the internal timeout value in seconds
 	void SetTimeout(int seconds);
 
 	// Set target IP
