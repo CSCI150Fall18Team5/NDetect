@@ -34,6 +34,24 @@ std::string targetIP="";
 std::string choice;
 
 
+
+
+void JoinThreads() {
+
+	// Wait for all threads to finish before proceeding.
+	for (int i = 0; i < threadCount; i++)
+	{
+		// Threads may have been detached when CTRL+C was triggered.
+		// Only join joinable threads.
+		if (programThreads[i].joinable())
+		{
+			programThreads[i].join();
+		}
+	}
+
+}
+
+
 int main(int argc, char **argv)
 {
 	// Configures the program to handle CTRL+C and other events when focused on the console.
@@ -53,9 +71,11 @@ int main(int argc, char **argv)
 		//captureEngine.SetTargetIP(targetIP);
 	}
 
-
 	// Set the capture mode
-	// captureEngine.SetCaptureMode(0);
+	captureEngine.SetCaptureMode(0);
+
+	// Set the Connection Timeout in Seconds
+	captureEngine.SetTimeout(5);
 
 	// Set the Console output mode
 	captureEngine.SetConsoleMode(ConnectionsMade);
@@ -73,19 +93,10 @@ int main(int argc, char **argv)
 	// Testing threading with another local method.
 	// programThreads[threadCount++] = std::thread(ThreadPrint);
 
-	// Wait for all threads to finish before proceeding.
-	for (int i = 0; i < threadCount; i++)
-	{
-		// Threads may have been detached when CTRL+C was triggered.
-		// Only join joinable threads.
-		if(programThreads[i].joinable())
-		{
-			programThreads[i].join();
-		}
-	}
+	JoinThreads();
+
 }
 	
-
 // Example of how to use the Packet data to generate messages
 void ThreadPrint() 
 {
@@ -135,7 +146,6 @@ BOOL WINAPI CtrlHandler(DWORD fdwCtrlType)
 		mux.unlock();		
 		exit(0);
 
-		// CTRL-CLOSE: confirm that the user wants to exit. 
 	case CTRL_CLOSE_EVENT:
 		Beep(600, 200);
 		printf("Ctrl-Close event\n\n");
