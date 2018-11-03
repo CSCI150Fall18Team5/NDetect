@@ -28,13 +28,28 @@ void ThreadPrint();
 BOOL WINAPI CtrlHandler(DWORD fdwCtrlType);
 
 // Holds taget IP
-std::string target="";
+std::string targetIP="";
 
 // temp choice target
 std::string choice;
 
-// select target port or IP
-int option = 0;
+
+
+
+void JoinThreads() {
+
+	// Wait for all threads to finish before proceeding.
+	for (int i = 0; i < threadCount; i++)
+	{
+		// Threads may have been detached when CTRL+C was triggered.
+		// Only join joinable threads.
+		if (programThreads[i].joinable())
+		{
+			programThreads[i].join();
+		}
+	}
+
+}
 
 
 int main(int argc, char **argv)
@@ -46,59 +61,21 @@ int main(int argc, char **argv)
 	// Records the user choice
 	captureEngine.SelectInterface();
 
-	// logic for the user to target IP or port
-	std::cout << "Do you want to enter an IP or Port filter (yes/no)?\n";
+	// Enter IP filter
+	std::cout << "Do you want to enter an IP filter (Y/N)?\n";
 	std::cin >> choice;
-	
-	if (choice == "yes")
+	if (choice == "Y" || choice == "y")
 	{
-		std::cout << "	Press 1 - Local IP target\n	Press 2 - Destination IP target\n	Press 3- Local Port target\n	Press 4 - Destination Port target\n";
-		std::cin >> option;
-		// Enter IP filter
-		switch (option)
-		{
-		// Local IP target
-		case 1:
-			std::cout << "	Enter your local IP target: xxx.xxx.xxx.xxx\n";
-			std::cin >> target;
-			captureEngine.myFilter->SetLocalTargetIP(target);
-			break;
-
-		// Destination IP target
-		case 2:
-			std::cout << "	Enter your destination IP target: xxx.xxx.xxx.xxx\n";
-			std::cin >> target;
-			captureEngine.myFilter->SetDestTargetIP(target);
-			break;
-
-
-		// Local Port target
-		case 3:
-			std::cout << "	Enter your local port target or alias: \n";
-			std::cin >> target;
-			captureEngine.myFilter->SetLocalTargetPort(target);
-			break;
-
-		// Destination Port target
-		case 4:
-			std::cout << "	Enter your destination port target or alias: \n";
-			std::cin >> target;
-			captureEngine.myFilter->SetDestTargetPort(target);
-			break;
-
-		default:
-			std::cout << "input out of scope\n";
-			break;
-		}
-		// flag to tell the capture engine that theres a target
-		captureEngine.isTargetSet = true;
+		std::cout << "Target IP: \n";
+		std::cin >> targetIP;
+		//captureEngine.SetTargetIP(targetIP);
 	}
 
-
-
-
 	// Set the capture mode
-	// captureEngine.SetCaptureMode(0);
+	captureEngine.SetCaptureMode(0);
+
+	// Set the Connection Timeout in Seconds
+	captureEngine.SetTimeout(5);
 
 	// Set the Console output mode
 	captureEngine.SetConsoleMode(ConnectionsMade);
@@ -116,19 +93,10 @@ int main(int argc, char **argv)
 	// Testing threading with another local method.
 	// programThreads[threadCount++] = std::thread(ThreadPrint);
 
-	// Wait for all threads to finish before proceeding.
-	for (int i = 0; i < threadCount; i++)
-	{
-		// Threads may have been detached when CTRL+C was triggered.
-		// Only join joinable threads.
-		if(programThreads[i].joinable())
-		{
-			programThreads[i].join();
-		}
-	}
+	JoinThreads();
+
 }
 	
-
 // Example of how to use the Packet data to generate messages
 void ThreadPrint() 
 {
@@ -178,7 +146,6 @@ BOOL WINAPI CtrlHandler(DWORD fdwCtrlType)
 		mux.unlock();		
 		exit(0);
 
-		// CTRL-CLOSE: confirm that the user wants to exit. 
 	case CTRL_CLOSE_EVENT:
 		Beep(600, 200);
 		printf("Ctrl-Close event\n\n");

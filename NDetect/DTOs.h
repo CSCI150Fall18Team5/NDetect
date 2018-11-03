@@ -132,9 +132,13 @@ public:
 	Connection();
 	// Contructor to set the connection endpoints (IP:port -> IP:port)
 	Connection(Packet pkt);
-
+	
+	// Packet related functions
 	bool PacketBelongs(Packet pkt);
 	void AddPacket(Packet pkt);
+
+	// Operators
+	bool operator==(const Connection& other);
 
 	// Getter functions
 	int GetTotalBytes();

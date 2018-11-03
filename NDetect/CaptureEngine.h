@@ -92,19 +92,32 @@ class CaptureEngine
 	PacketDisplay displayPacketData = HeaderOnly;
 
 	// Captures the interface name during SelectInterface()
-	std::string interfaceName = "Test";
+	std::string interfaceName = "";
 
 	// Slows the flow of packets on the console during DisplayPacketData()
 	// packets stay on screen longer for longer packets of data.
 	double sleepTime = 0.2;
 
+	// Thread holder
+	std::thread threadTimeout;
+
+	// Mutual Exclusion
+	// Used to give one thread exclusive operation, which prevent code interleaving
+	std::mutex mux;
+
+	// Timeout value in seconds
+	int timeoutSeconds = 5;
+
+
 	// List of Packets captured
 	std::list<Packet> capturedPackets;
 	int packetLimit = 20000;
 
-	// Connection Array
-	Connection connections[1000];
-	int connectionCount = 0;
+	// Connection map
+	/*
+		The hash for this map will be {Source_IP:S_Port->Destination_IP:D_Port} as a string
+	*/
+	std::map <std::string, Connection> connections;
 
 	// Halts capturing if changed
 	bool continueCapturing = true;
@@ -114,7 +127,8 @@ class CaptureEngine
 	// IP to string conversion
 	char * iptos(u_long in);
 
-
+	// create a filter object 
+	Filter* myFilter = new Filter();
 
 public:
 	CaptureEngine();
@@ -158,18 +172,34 @@ public:
 	// Getter for Packet List
 	std::list<Packet> GetPacketList();
 
+	// Gets the last number of packets
+	std::list<Packet> GetNLastPackets(int N);
+
+	// Get a copy of all the current connections in a list
+	std::list<Connection> GetConnections();
+
+	// Constructs the key string for accessing a Connection in connections
+	std::string ConstructKeyString(Packet pkt);
+	std::string ConstructKeyString(Connection con);
+
+	// Returns true if there is a connection built from the packet arg.
+	bool ConnectionExists(Packet pkt);
+
 	// Used for CTRL+C sequence
 	void SetContinueCapturing(bool);
 
 	// Setter for Packet Limit
 	void SetPacketLimit(int max);
 
-	void CreateOrUpdateConnection(Packet con);
+	// Creates or Updates connections based on the packet
+	void CreateOrUpdateConnection(Packet pkt);
 
-	// create a filter object 
-	Filter* myFilter = new Filter();
+	// Threaded function which sits in the back and constantly checks if the connections
+	// have been idle past the timeoutValue
+	void CheckTimeout();
 
-	// Filter flag
-	bool isTargetSet = false;
+	// Sets the internal timeout value in seconds
+	void SetTimeout(int seconds);
+
 
 };
