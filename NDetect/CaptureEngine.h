@@ -114,8 +114,7 @@ class CaptureEngine
 	// IP to string conversion
 	char * iptos(u_long in);
 
-	// create a filter object 
-	Filter* myFilter = new Filter();
+
 
 public:
 	CaptureEngine();
@@ -167,6 +166,10 @@ public:
 
 	void CreateOrUpdateConnection(Packet con);
 
+	// create a filter object 
+	Filter* myFilter = new Filter();
 
+	// Filter flag
+	bool isTargetSet = false;
 
 };

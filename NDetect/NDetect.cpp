@@ -28,10 +28,13 @@ void ThreadPrint();
 BOOL WINAPI CtrlHandler(DWORD fdwCtrlType);
 
 // Holds taget IP
-std::string targetIP="";
+std::string target="";
 
 // temp choice target
 std::string choice;
+
+// select target port or IP
+int option = 0;
 
 
 int main(int argc, char **argv)
@@ -43,15 +46,55 @@ int main(int argc, char **argv)
 	// Records the user choice
 	captureEngine.SelectInterface();
 
-	// Enter IP filter
-	std::cout << "Do you want to enter an IP filter (Y/N)?\n";
+	// logic for the user to target IP or port
+	std::cout << "Do you want to enter an IP or Port filter (yes/no)?\n";
 	std::cin >> choice;
-	if (choice == "Y" || choice == "y")
+	
+	if (choice == "yes")
 	{
-		std::cout << "Target IP: \n";
-		std::cin >> targetIP;
-		//captureEngine.SetTargetIP(targetIP);
+		std::cout << "	Press 1 - Local IP target\n	Press 2 - Destination IP target\n	Press 3- Local Port target\n	Press 4 - Destination Port target\n";
+		std::cin >> option;
+		// Enter IP filter
+		switch (option)
+		{
+		// Local IP target
+		case 1:
+			std::cout << "	Enter your local IP target: xxx.xxx.xxx.xxx\n";
+			std::cin >> target;
+			captureEngine.myFilter->SetLocalTargetIP(target);
+			break;
+
+		// Destination IP target
+		case 2:
+			std::cout << "	Enter your destination IP target: xxx.xxx.xxx.xxx\n";
+			std::cin >> target;
+			captureEngine.myFilter->SetDestTargetIP(target);
+			break;
+
+
+		// Local Port target
+		case 3:
+			std::cout << "	Enter your local port target or alias: \n";
+			std::cin >> target;
+			captureEngine.myFilter->SetLocalTargetPort(target);
+			break;
+
+		// Destination Port target
+		case 4:
+			std::cout << "	Enter your destination port target or alias: \n";
+			std::cin >> target;
+			captureEngine.myFilter->SetDestTargetPort(target);
+			break;
+
+		default:
+			std::cout << "input out of scope\n";
+			break;
+		}
+		// flag to tell the capture engine that theres a target
+		captureEngine.isTargetSet = true;
 	}
+
+
 
 
 	// Set the capture mode
