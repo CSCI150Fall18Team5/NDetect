@@ -61,18 +61,20 @@ int main(int argc, char **argv)
 	// Initialize GLUT Framework
 	glutInit(&argc, argv);
 
-	// Enter Filter
-	std::cout << "Do you want to apply a filter (yes/no)? \n";
-	std::cin >> choice;
-	
-	if (choice == "yes")
-	{
-		std::cout << "Enter 1 for Local IP\n	Enter 2 for Destination IP\n	Enter 3 for Local Port\n	Enter 4 for Destination Port\n";
-		std::cin >> typeOfFilter;
-		std::cout << "Enter IP or Port number";
+	if (CaptureOn) {
+
+		// Enter Filter
+		std::cout << "Do you want to apply a filter (yes/no)? \n";
 		std::cin >> choice;
-		switch (typeOfFilter)
+
+		if (choice == "yes")
 		{
+			std::cout << "Enter 1 for Local IP\n	Enter 2 for Destination IP\n	Enter 3 for Local Port\n	Enter 4 for Destination Port\n";
+			std::cin >> typeOfFilter;
+			std::cout << "Enter IP or Port number";
+			std::cin >> choice;
+			switch (typeOfFilter)
+			{
 			case 1:
 				captureEngine.myFilter->SetLocalTargetIP(choice);
 				break;
@@ -83,32 +85,21 @@ int main(int argc, char **argv)
 				captureEngine.myFilter->SetLocalTargetPort(choice);
 				break;
 			case 4:
-			//	captureEngine.myFilter->SetDestTargetPort(choice);
+				//	captureEngine.myFilter->SetDestTargetPort(choice);
 				break;
- 		default:
-			std::cout << "Answer out of scope\n";
-			break;
+			default:
+				std::cout << "Answer out of scope\n";
+				break;
+			}
 		}
-	}
-	else {
-		captureEngine.noFilter = true;
-	}
-	
-	// Set the capture mode
-	captureEngine.SetCaptureMode(0);
-
-		// Enter IP filter
-		std::cout << "Do you want to enter an IP filter (Y/N)?\n";
-		std::cin >> choice;
-		if (choice == "Y" || choice == "y")
-		{
-			std::cout << "Target IP: \n";
-			std::cin >> targetIP;
-			//captureEngine.SetTargetIP(targetIP);
+		else {
+			captureEngine.noFilter = true;
 		}
 
 		// Set the capture mode
 		captureEngine.SetCaptureMode(0);
+
+
 
 		// Set the Connection Timeout in Seconds
 		captureEngine.SetTimeout(5);
