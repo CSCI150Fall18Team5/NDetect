@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "CaptureEngine.h"
+#include "GraphicsEngine.h"
 #include <string>
 
 //
@@ -7,6 +8,8 @@
 // preprocessor definitions.
 //
 
+// Graphics Engine performs all the visual representation
+GraphicsEngine graphicsEngine;
 
 // Handles all the Packet Capture Logic
 CaptureEngine captureEngine;
@@ -24,8 +27,6 @@ bool continueSecondUpdate = true;
 
 // Threaded function declaration.
 void ThreadPrint();
-// Ctrl-C handler declaration.
-BOOL WINAPI CtrlHandler(DWORD fdwCtrlType);
 
 // Holds taget IP
 std::string targetIP="";
@@ -55,12 +56,10 @@ void JoinThreads() {
 
 int main(int argc, char **argv)
 {
-	// Configures the program to handle CTRL+C and other events when focused on the console.
-	SetConsoleCtrlHandler(CtrlHandler, true);
+	bool CaptureOn = false;
 
-	// Displays the Interfaces available to capture packets.
-	// Records the user choice
-	captureEngine.SelectInterface();
+	// Initialize GLUT Framework
+	glutInit(&argc, argv);
 
 	// Enter Filter
 	std::cout << "Do you want to apply a filter (yes/no)? \n";
@@ -98,24 +97,41 @@ int main(int argc, char **argv)
 	// Set the capture mode
 	captureEngine.SetCaptureMode(0);
 
-	// Set the Connection Timeout in Seconds
-	captureEngine.SetTimeout(5);
+		// Enter IP filter
+		std::cout << "Do you want to enter an IP filter (Y/N)?\n";
+		std::cin >> choice;
+		if (choice == "Y" || choice == "y")
+		{
+			std::cout << "Target IP: \n";
+			std::cin >> targetIP;
+			//captureEngine.SetTargetIP(targetIP);
+		}
 
-	// Set the Console output mode
-	captureEngine.SetConsoleMode(ConnectionsMade);
+		// Set the capture mode
+		captureEngine.SetCaptureMode(0);
 
-	// Set the Live Stream display
-	// RawData = Show Packet Data
-	// HeaderOnly = Show only the Packet Header
-	captureEngine.SetLiveStreamDisplay(HeaderOnly);
+		// Set the Connection Timeout in Seconds
+		captureEngine.SetTimeout(5);
 
-	// Using &captureEngine as the object reference, start the CaptureEngine::Capture method.
-	// The &CaptureEngine::Capture is a reference to the class method.
-	// This threading example does not pass arguments.
-	programThreads[threadCount++] = std::thread(&CaptureEngine::Capture, &captureEngine);
+		// Set the Console output mode
+		captureEngine.SetConsoleMode(ConnectionsMade);
 
-	// Testing threading with another local method.
-	// programThreads[threadCount++] = std::thread(ThreadPrint);
+		// Set the Live Stream display
+		// RawData = Show Packet Data
+		// HeaderOnly = Show only the Packet Header
+		captureEngine.SetLiveStreamDisplay(HeaderOnly);
+
+		// Using &captureEngine as the object reference, start the CaptureEngine::Capture method.
+		// The &CaptureEngine::Capture is a reference to the class method.
+		// This threading example does not pass arguments.
+		programThreads[threadCount++] = std::thread(&CaptureEngine::Capture, &captureEngine);
+
+		// Testing threading with another local method.
+		// programThreads[threadCount++] = std::thread(ThreadPrint);
+
+	}
+
+	graphicsEngine.StartGLWindow();
 
 	JoinThreads();
 
@@ -140,58 +156,4 @@ void ThreadPrint()
 		secondsPassed++;
 	}
 
-}
-
-/*
-	Sourced from: https://docs.microsoft.com/en-us/windows/console/registering-a-control-handler-function
-	Handles when CTRL+C and other events are pressed during execution.
-*/
-BOOL WINAPI CtrlHandler(DWORD fdwCtrlType)
-{
-	switch (fdwCtrlType)
-	{
-		// Handle the CTRL-C signal. 
-	case CTRL_C_EVENT:
-		// Lock this thread
-		mux.lock();	
-		// Stop the Capturing Output
-		captureEngine.SetContinueCapturing(false);
-		// Stop the Update message
-		continueSecondUpdate = false;
-		// Detach all threads so they can safely be deleted.
-		for (int i = 0; i < threadCount; i++)
-		{
-			// Kill the other threads
-			programThreads[i].detach();
-		}
-		std::cout << " \n\n CTRL+C pressed, exiting... \n\n\n";
-		Sleep(1500);
-		// Unlock and exit
-		mux.unlock();		
-		exit(0);
-
-	case CTRL_CLOSE_EVENT:
-		Beep(600, 200);
-		printf("Ctrl-Close event\n\n");
-		return TRUE;
-
-		// Pass other signals to the next handler. 
-	case CTRL_BREAK_EVENT:
-		Beep(900, 200);
-		printf("Ctrl-Break event\n\n");
-		return TRUE;
-
-	case CTRL_LOGOFF_EVENT:
-		Beep(1000, 200);
-		printf("Ctrl-Logoff event\n\n");
-		return FALSE;
-
-	case CTRL_SHUTDOWN_EVENT:
-		Beep(750, 500);
-		printf("Ctrl-Shutdown event\n\n");
-		return FALSE;
-
-	default:
-		return FALSE;
-	}
 }
