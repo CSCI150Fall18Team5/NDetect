@@ -209,11 +209,13 @@ void CaptureEngine::Display()
 			strftime(pktTime, sizeof pktTime, "%H:%M:%S", &pktTM);
 
 
-			//if (GetTargetIP() == con.sourceIpString.c_str() || GetTargetIP() =="") {
+			if (myFilter->GetLocalTargetIP() == con.sourceIpString.c_str() || myFilter->GetDestTargetIP() == con.destIpString.c_str() || myFilter->GetLocalTargetPort() == con.sourcePortString.c_str() || myFilter->GetDestTargetPort() == con.destPortString.c_str()) {
 				// printf("|> %s : %s --> %s : %s", con.sourceIpString, con.sourcePortString, con.destIpString, con.destPortString );
 				printf(" %i \t| %i \t\t| %s \t| %s:%s \t| %s:%s \n", con.GetTotalBytes(), con.GetPacketCount(), pktTime, con.sourceIpString.c_str(), con.sourcePortString.c_str(), con.destIpString.c_str(), con.destPortString.c_str());
 				// std::cout << "|> {" << i << "} " << con.sourceIpString << con.sourcePortString << con.destIpString << con.destPortString << "\n";
-			//}
+			}
+			if(noFilter)
+				printf(" %i \t| %i \t\t| %s \t| %s:%s \t| %s:%s \n", con.GetTotalBytes(), con.GetPacketCount(), pktTime, con.sourceIpString.c_str(), con.sourcePortString.c_str(), con.destIpString.c_str(), con.destPortString.c_str());
 
 
 		}

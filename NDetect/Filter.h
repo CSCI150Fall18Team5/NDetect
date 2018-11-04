@@ -11,26 +11,26 @@ class Filter
 	// Target IP from the user
 	std::string targetLocalIP = "";
 	std::string targetDestIP = "";
-	int targetLocalPort = 0;
-	int targetDestPort = 0;
+	std::string targetLocalPort = "";
+	std::string targetDestPort = "";
 
 
 public:
 	Filter();
-	Filter(std::string targetLocalIP, std::string targetDestIP, int targetLocalPort, int targetDestPort);
+	Filter(std::string targetLocalIP, std::string targetDestIP, std::string targetLocalPort, std::string targetDestPort);
 	~Filter();
 
 	// Set ters 
 	void SetLocalTargetIP(std::string);
 	void SetDestTargetIP(std::string);
-	void SetLocalTargetPort(int);
-	void SetDestTargetPort(int);
+	void SetLocalTargetPort(std::string);
+	void SetDestTargetPort(std::string);
 
 	// Getters 
 	std::string GetLocalTargetIP();
 	std::string GetDestTargetIP();
-	int GetLocalTargetPort();
-	int GetDestTargetPort();
+	std::string GetLocalTargetPort();
+	std::string GetDestTargetPort();
 
 	// Method to show Target IP
 	void ShowTargetIP();

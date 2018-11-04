@@ -8,7 +8,7 @@ Filter::Filter()
 {
 }
 
-Filter::Filter(std::string targetLocalIP, std::string targetDestIP, int targetLocalPort, int targetDestPort)
+Filter::Filter(std::string targetLocalIP, std::string targetDestIP, std::string targetLocalPort, std::string targetDestPort)
 {
 	this->targetLocalIP = targetLocalIP;
 	this->targetDestIP = targetDestIP;
@@ -31,7 +31,7 @@ void Filter::SetDestTargetIP(std::string IP)
 	targetDestIP = IP;
 }
 
-void Filter::SetLocalTargetPort(int port)
+void Filter::SetLocalTargetPort(std::string port)
 {
 	targetLocalPort = port;
 }
@@ -46,12 +46,12 @@ std::string Filter::GetDestTargetIP()
 	return std::string(targetDestIP);
 }
 
-int Filter::GetLocalTargetPort()
+std::string Filter::GetLocalTargetPort()
 {
 	return targetLocalPort;
 }
 
-int Filter::GetDestTargetPort()
+std::string Filter::GetDestTargetPort()
 {
 	return targetDestPort;
 }
@@ -64,9 +64,9 @@ void Filter::ShowTargetIP()
 		std::cout << "Target IP Local: " << targetLocalIP << " \t|\n\r";
 	if( targetDestIP != "")
 		std::cout << "Target IP Destination: " << targetDestIP << " \t|\n\r";
-	if( targetLocalPort != 0)
+	if( targetLocalPort != "")
 		std::cout << "Target port Local: " << targetDestPort << " \t|\n\r";
-	if(targetDestPort != 0)
+	if(targetDestPort != "")
 		std::cout << "Target port Destination: " << targetDestPort << " \t|\n\r";
 
 }
