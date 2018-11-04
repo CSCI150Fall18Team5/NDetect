@@ -33,7 +33,8 @@ std::string targetIP="";
 // temp choice target
 std::string choice;
 
-
+// type of filter
+int typeOfFilter = 0;
 
 
 void JoinThreads() {
@@ -61,16 +62,39 @@ int main(int argc, char **argv)
 	// Records the user choice
 	captureEngine.SelectInterface();
 
-	// Enter IP filter
-	std::cout << "Do you want to enter an IP filter (Y/N)?\n";
+	// Enter Filter
+	std::cout << "Do you want to apply a filter (yes/no)? \n";
 	std::cin >> choice;
-	if (choice == "Y" || choice == "y")
+	
+	if (choice == "yes")
 	{
-		std::cout << "Target IP: \n";
-		std::cin >> targetIP;
-		//captureEngine.SetTargetIP(targetIP);
+		std::cout << "Enter 1 for Local IP\n	Enter 2 for Destination IP\n	Enter 3 for Local Port\n	Enter 4 for Destination Port\n";
+		std::cin >> typeOfFilter;
+		std::cout << "Enter IP or Port number";
+		std::cin >> choice;
+		switch (typeOfFilter)
+		{
+			case 1:
+				captureEngine.myFilter->SetLocalTargetIP(choice);
+				break;
+			case 2:
+				captureEngine.myFilter->SetDestTargetIP(choice);
+				break;
+			case 3:
+				captureEngine.myFilter->SetLocalTargetPort(choice);
+				break;
+			case 4:
+			//	captureEngine.myFilter->SetDestTargetPort(choice);
+				break;
+ 		default:
+			std::cout << "Answer out of scope\n";
+			break;
+		}
 	}
-
+	else {
+		captureEngine.noFilter = true;
+	}
+	
 	// Set the capture mode
 	captureEngine.SetCaptureMode(0);
 
