@@ -127,8 +127,6 @@ class CaptureEngine
 	// IP to string conversion
 	char * iptos(u_long in);
 
-	// create a filter object 
-	Filter* myFilter = new Filter();
 
 public:
 	CaptureEngine();
@@ -201,5 +199,9 @@ public:
 	// Sets the internal timeout value in seconds
 	void SetTimeout(int seconds);
 
-
+	// create a filter object 
+	Filter* myFilter = new Filter();
+	
+	// flag for no filter option
+	bool noFilter = false;
 };
