@@ -51,6 +51,13 @@ void Filter::setMapPort()
 	std::ifstream myFile("WellKnownPorts.txt");
 	std::string rowString;
 
+	// string that will hold the alias
+	std::string alias;
+	// string that will hold the port
+	std::string port;
+	// string that will hold the description
+	std::string description;
+
 	if (!myFile.is_open())
 	{
 		std::cout << "Input File could not be opened! Exploding in 5 sec!!!";
@@ -58,7 +65,23 @@ void Filter::setMapPort()
 	}
 	while (std::getline(myFile, rowString))
 	{
-		std::cout << rowString << "\n";
+		// asses the position in the row of ' ' and gets the first int
+		std::string::size_type posn;
+		// asses the second position in the row
+		std::string::size_type posn2;
+
+
+		posn = rowString.find('\t');
+		port = rowString.substr(0, posn);
+		rowString.erase(0, posn+1);
+		posn = rowString.find('\t',posn);
+		alias = rowString.substr(0, posn);
+		rowString.erase(0, posn + 1);
+		description = rowString;
+
+		
+		//  display 
+		std::cout <<alias<<"++"<<port<<"--"<<description<<"\n";
 	}
 	myFile.close();
 }
