@@ -17,7 +17,7 @@ class Filter
 
 public:
 	Filter();
-	Filter(std::string targetLocalIP, std::string targetDestIP, int targetLocalPort, int targetDestPort);
+	Filter(std::string targetLocalIP, std::string targetDestIP, std::string targetLocalPort, std::string targetDestPort);
 	~Filter();
 
 	// Set ters 

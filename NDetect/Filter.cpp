@@ -8,7 +8,7 @@ Filter::Filter()
 {
 }
 
-Filter::Filter(std::string targetLocalIP, std::string targetDestIP, int targetLocalPort, int targetDestPort)
+Filter::Filter(std::string targetLocalIP, std::string targetDestIP, std::string targetLocalPort, std::string targetDestPort)
 {
 	this->targetLocalIP = targetLocalIP;
 	this->targetDestIP = targetDestIP;
