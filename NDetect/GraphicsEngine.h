@@ -28,6 +28,11 @@ class GraphicsEngine
 	const GLfloat mat_specular[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 	const GLfloat high_shininess[1] = { 100.0f };
 
+	// Background colors
+	float bgRed = 0.0, bgGreen = 0.05, bgBlue = 0.5, bgAlpha = 1.0;
+
+
+
 public:
 	GraphicsEngine();
 	~GraphicsEngine();

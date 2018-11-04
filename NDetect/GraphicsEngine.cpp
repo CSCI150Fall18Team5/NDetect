@@ -16,11 +16,13 @@ void GraphicsEngine::Display()
 {
 	// Useful for 
 	const double t = (glutGet(GLUT_ELAPSED_TIME) % 10000) / 1000.0;
-	// const double a = t*90.0;
+	const double a = t;
 
 	// Clear display buffers
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	// Set the Matrix Mode
 	glMatrixMode(GL_MODELVIEW);
+	// Starting Identity Matrix
 	glLoadIdentity();
 
 	// Position the camera in 3D space.
@@ -31,22 +33,33 @@ void GraphicsEngine::Display()
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);		//Draw Our Mesh In Wireframe Mesh
 	else
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);		//Toggle WIRE FRAME
-
-
-	// Set the background color
-	glClearColor(2.25, 0.5, 5.45, 0);
-
-	// Push a new matrix into the framework.
 	
+	// Set the background color
+	glClearColor(bgRed, bgGreen, bgBlue, 1.0);
 
+	/*
+		This is a Template for creating objects in 3D space.
+		First you must push a new Matrix into the framework,
+		then perform any translations/rotation/coloring you desire.
+		Finally, put your object into that matrix and pop the matrix.
+	*/
+	// Push a new matrix into the framework.
 	glPushMatrix();
 		// Code for Displaying things goes here...
-		glTranslatef(0.0, 0.0, -15.0);
-		glutSolidSphere(8.5, 50, 50);
-		glutSolidCube(5);
+		glColor3f(0.6, 0.1, 0.6);
+		// Rotate by angle on x,y,z	
+		glRotatef(a*100, 1, 1, 0);
+		// Translate the object to x,y,z coords
+		glTranslatef(0.0, 0.0, 0.0);
+		// Place an Octahedron into the matrix
+		glutSolidIcosahedron();
+	// Pop the Matrix off, so that further alterations don't apply to this object.
 	glPopMatrix();
 
 
+
+	// Swaps the buffer built in this method with the one on screen.
+	// Simply put, this renders the frame.
 	glutSwapBuffers();
 
 }
@@ -72,6 +85,7 @@ void GraphicsEngine::Resize(int width, int height)
 
 void GraphicsEngine::Idle()
 {
+	glutPostRedisplay();
 }
 
 void GraphicsEngine::KeyDown(unsigned char key, int x, int y)
