@@ -345,7 +345,7 @@ std::list<Connection> CaptureEngine::GetConnections()
 std::string CaptureEngine::ConstructKeyString(Packet pkt)
 {
 	// Used for creating the string key.
-	char sKey[9001];
+	char sKey[1000];
 
 	// Format the key string
 	std::string sIP = pkt.GetSourceIP();
@@ -363,7 +363,7 @@ std::string CaptureEngine::ConstructKeyString(Packet pkt)
 std::string CaptureEngine::ConstructKeyString(Connection con)
 {
 	// Used for creating the string key.
-	char sKey[9001];
+	char sKey[1000];
 
 	// Format the key string
 	std::string sIP = con.GetSourceIP();
