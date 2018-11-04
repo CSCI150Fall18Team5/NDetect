@@ -61,6 +61,7 @@ int main(int argc, char **argv)
 	// Initialize GLUT Framework
 	glutInit(&argc, argv);
 
+<<<<<<< Updated upstream
 	// Enter Filter
 	std::cout << "Do you want to apply a filter (yes/no)? \n";
 	std::cin >> choice;
@@ -131,6 +132,48 @@ int main(int argc, char **argv)
 
 	}
 
+=======
+	if (CaptureOn) {
+
+		// Displays the Interfaces available to capture packets.
+		// Records the user choice
+		captureEngine.SelectInterface();
+
+		// Enter IP filter
+		std::cout << "Do you want to enter an IP filter (Y/N)?\n";
+		std::cin >> choice;
+		if (choice == "Y" || choice == "y")
+		{
+			std::cout << "Target IP: \n";
+			std::cin >> targetIP;
+			//captureEngine.SetTargetIP(targetIP);
+		}
+
+		// Set the capture mode
+		captureEngine.SetCaptureMode(0);
+
+		// Set the Connection Timeout in Seconds
+		captureEngine.SetTimeout(5);
+
+		// Set the Console output mode
+		captureEngine.SetConsoleMode(ConnectionsMade);
+
+		// Set the Live Stream display
+		// RawData = Show Packet Data
+		// HeaderOnly = Show only the Packet Header
+		captureEngine.SetLiveStreamDisplay(HeaderOnly);
+
+		// Using &captureEngine as the object reference, start the CaptureEngine::Capture method.
+		// The &CaptureEngine::Capture is a reference to the class method.
+		// This threading example does not pass arguments.
+		programThreads[threadCount++] = std::thread(&CaptureEngine::Capture, &captureEngine);
+
+		// Testing threading with another local method.
+		// programThreads[threadCount++] = std::thread(ThreadPrint);
+
+	}
+
+>>>>>>> Stashed changes
 	graphicsEngine.StartGLWindow();
 
 	JoinThreads();
