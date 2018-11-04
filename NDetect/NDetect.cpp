@@ -55,6 +55,9 @@ void JoinThreads() {
 
 int main(int argc, char **argv)
 {
+	// initialize map
+	captureEngine.myFilter->setMapPort();
+
 	// Configures the program to handle CTRL+C and other events when focused on the console.
 	SetConsoleCtrlHandler(CtrlHandler, true);
 

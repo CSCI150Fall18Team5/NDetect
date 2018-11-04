@@ -1,8 +1,11 @@
 #pragma once
+#include <map>
+#include <fstream>
+#include <iostream>
 #include "pch.h"
 #include "DTOs.h"
 #include <string>
-#include <iostream>
+
 
 
 
@@ -25,6 +28,9 @@ public:
 	void SetDestTargetIP(std::string);
 	void SetLocalTargetPort(std::string);
 	void SetDestTargetPort(std::string);
+
+	// initialize map with port aliases
+	void setMapPort();
 
 	// Getters 
 	std::string GetLocalTargetIP();

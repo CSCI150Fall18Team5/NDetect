@@ -1,8 +1,12 @@
+#include <map>
+#include <fstream>
+#include <iostream>
+#include <string>
 #include "pch.h"
 #include "Filter.h"
 #include "DTOs.h"
-#include <string>
-#include <iostream>
+
+
 
 Filter::Filter()
 {
@@ -39,6 +43,24 @@ void Filter::SetLocalTargetPort(std::string port)
 void Filter::SetDestTargetPort(std::string port)
 {
 	targetDestPort = port;
+}
+
+void Filter::setMapPort()
+{
+	// creates stream object
+	std::ifstream myFile("WellKnownPorts.txt");
+	std::string rowString;
+
+	if (!myFile.is_open())
+	{
+		std::cout << "Input File could not be opened! Exploding in 5 sec!!!";
+		return;
+	}
+	while (std::getline(myFile, rowString))
+	{
+		std::cout << rowString << "\n";
+	}
+	myFile.close();
 }
 
 std::string Filter::GetLocalTargetIP()
