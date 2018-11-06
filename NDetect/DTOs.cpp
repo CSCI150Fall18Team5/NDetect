@@ -110,6 +110,7 @@ Connection::Connection(Packet pkt)
 
 	// Connection Total bytes equals the incoming Packet bytes.
 	this->totalBytes = pkt.packetBytes;
+	this->packetBytes = pkt.packetBytes;
 
 	// Set the packet Time
 	this->lastPacketTime = pkt.capturedTime;
@@ -186,3 +187,48 @@ tm Connection::GetLastPacketTime()
 	return lastPacketTime;
 }
 
+VisualConnection::VisualConnection()
+{
+
+}
+
+VisualConnection::VisualConnection(std::string name, Connection con)
+{
+	// Setup private vars
+	Name = name;
+	conn = con;
+
+	this->packetCount = conn.GetPacketCount();
+
+	this->totalBytes = conn.GetTotalBytes();
+
+}
+
+/*
+VisualConnection & VisualConnection::operator=(const Connection con)
+{
+	// TODO: insert return statement here
+}
+*/
+
+void VisualConnection::SetTranslation(float x, float y, float z)
+{
+	tX = x;
+	tY = y;
+	tZ = z;
+}
+
+void VisualConnection::SetRotation(float angle, float x, float y, float z)
+{
+	rX = x;
+	rY = y;
+	rZ = z;
+
+}
+
+void VisualConnection::SetScale(float x, float y, float z)
+{
+	sX = x;
+	sY = y;
+	sZ = z;
+}

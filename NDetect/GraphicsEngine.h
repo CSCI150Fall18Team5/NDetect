@@ -1,4 +1,9 @@
 #pragma once
+
+#include "DTOs.h"
+#include "CaptureEngine.h"
+
+
 class GraphicsEngine
 {
 	// Window Size
@@ -15,7 +20,7 @@ class GraphicsEngine
 	bool * keyZ = &keysPressed[5];
 
 	// Wireframe Toggle
-	bool WireFrame = false;
+	bool WireFrame = true;
 
 	// Lighting and Materials
 	const GLfloat light_ambient[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -29,32 +34,70 @@ class GraphicsEngine
 	const GLfloat high_shininess[1] = { 100.0f };
 
 	// Background colors
-	float bgRed = 0.0, bgGreen = 0.05, bgBlue = 0.5, bgAlpha = 1.0;
+	float bgRed = 0.4, bgGreen = 0.12, bgBlue = 0.5, bgAlpha = 0.0;
+
+	// Camera Position and Direction
+	float camX = 0.0, camY = -15.0, camZ = 5.0;
+	float focusX = 0.0, focusY = 0.0, focusZ = 0.0;
+
+	// Translation
+	float TranslateX = 0.0, TranslateY = 0.0, TranslateZ = 0.0;
+
+	// Rotation
+	float RotateX = 22, RotateY = 140.6, RotateZ = 0;
+
+	// Scale
+	float ScaleX = 2.0f, ScaleY = 1.0f, ScaleZ = 2.0f;
+
+	// Pointer to the CaptureEngine
+	CaptureEngine * captureEngine;
+
+	// Connections obtained from the CaptureEngine
+	std::list<Connection> connectionList;
+
+	// Grabs updated list of Connections
+	std::thread updater;
+
+	////////////////////////
+	// Graphics Constants
+
+	float circleRadius = 5.0;
 
 
 
 public:
-	GraphicsEngine();
+	GraphicsEngine(CaptureEngine * capEng);
 	~GraphicsEngine();
 
 	// Display function draws all elements.
 	void Display();
 
+	void DrawCircle(float centerX, float centerY, float radius, int segments);
+
+	void DrawHosts();
+
+	void DrawHost(VisualConnection vCon);
+
 	// Called when the window resizes.
 	void Resize(int width, int height);
 
+	// Runs when the framework isn't rendering a frame
 	void Idle();
 
+	// Initialization of the Framework
+	void Init();
+
+	// Key Handler functions
 	void KeyDown(unsigned char key, int x, int y);
-
 	void KeyUp(unsigned char key, int x, int y);
-
 	void SpecialKeyDown(int key, int x, int y);
-
 	void SpecialKeyUp(int key, int x, int y);
-
 	void ReadKeyStates();
 
+	// CaptureEngine Interactions
+	void UpdateConnections();
+
+	void ProcessConnections();
 
 	// Starts the GLUT Window loop.
 	void StartGLWindow();

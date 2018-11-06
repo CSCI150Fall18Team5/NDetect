@@ -101,13 +101,8 @@ class CaptureEngine
 	// Thread holder
 	std::thread threadTimeout;
 
-	// Mutual Exclusion
-	// Used to give one thread exclusive operation, which prevent code interleaving
-	std::mutex mux;
-
 	// Timeout value in seconds
 	int timeoutSeconds = 5;
-
 
 	// List of Packets captured
 	std::list<Packet> capturedPackets;
@@ -131,6 +126,10 @@ class CaptureEngine
 public:
 	CaptureEngine();
 	~CaptureEngine();
+
+	// Mutual Exclusion
+	// Used to give one thread exclusive operation, which prevent code interleaving
+	std::mutex mux;
 
 	// Displays the interfaces to choose from.
 	void SelectInterface();
@@ -166,6 +165,9 @@ public:
 
 	// Shows the data inside the packet
 	void DisplayPacketData();
+
+	// Get the Mutex from this class
+	std::mutex GetMutex();
 
 	// Getter for Packet List
 	std::list<Packet> GetPacketList();
