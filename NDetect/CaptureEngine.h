@@ -3,6 +3,7 @@
 #include "pch.h"
 #include "DTOs.h"
 #include "Filter.h"
+#include "ThreadManager.h"
 #include <string>
 #include <iostream>
 
@@ -98,8 +99,8 @@ class CaptureEngine
 	// packets stay on screen longer for longer packets of data.
 	double sleepTime = 0.2;
 
-	// Thread holder
-	std::thread threadTimeout;
+	// Manages running threads and holds between them.
+	ThreadManager * threadMan;
 
 	// Timeout value in seconds
 	int timeoutSeconds = 5;
@@ -124,12 +125,8 @@ class CaptureEngine
 
 
 public:
-	CaptureEngine();
+	CaptureEngine(ThreadManager * tm);
 	~CaptureEngine();
-
-	// Mutual Exclusion
-	// Used to give one thread exclusive operation, which prevent code interleaving
-	std::mutex mux;
 
 	// Displays the interfaces to choose from.
 	void SelectInterface();

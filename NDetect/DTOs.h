@@ -22,14 +22,14 @@ enum ConsoleMode
 };
 
 
-// This enum refers to the programThreads array back in NDetect.cpp
-// Enum values start at 0
-// To create new threads, create a new entry in this enum
-// Then, you can refence your thread like so:
-// Ex. programThreads[NewThreadEnum].join()
-enum ThreadID {
-	CaptureLoop, ThreadedPrint
+// Used for Thread array index
+// Example Thread Creation:
+// threadMan->Threads[ThreadNames::Timeout] = std::thread(&CaptureEngine::CheckTimeout, this);
+enum ThreadNames
+{
+	CaptureLoop, Timeout, UpdateConnections
 };
+
 
 /* 4 bytes IP address */
 class ip_address {

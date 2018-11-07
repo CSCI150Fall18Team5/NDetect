@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "CaptureEngine.h"
 #include "GraphicsEngine.h"
+#include "ThreadManager.h"
 #include <string>
 
 //
@@ -8,12 +9,14 @@
 // preprocessor definitions.
 //
 
+// Create our Master of Threads
+ThreadManager threadMan;
 
 // Handles all the Packet Capture Logic
-CaptureEngine captureEngine;
+CaptureEngine captureEngine(&threadMan);
 
 // Graphics Engine performs all the visual representation
-GraphicsEngine graphicsEngine(&captureEngine);
+GraphicsEngine graphicsEngine(&captureEngine, &threadMan);
 
 // Thread holder
 std::thread programThreads[10];
@@ -58,6 +61,7 @@ void JoinThreads() {
 int main(int argc, char **argv)
 {
 	bool CaptureOn = true;
+	bool GraphicsOn = false;
 
 	// Initialize GLUT Framework
 	glutInit(&argc, argv);
@@ -117,14 +121,14 @@ int main(int argc, char **argv)
 		// Using &captureEngine as the object reference, start the CaptureEngine::Capture method.
 		// The &CaptureEngine::Capture is a reference to the class method.
 		// This threading example does not pass arguments.
-		programThreads[threadCount++] = std::thread(&CaptureEngine::Capture, &captureEngine);
-
+		threadMan.Threads[threadMan.ThreadCount++] = std::thread(&CaptureEngine::Capture, &captureEngine);
+		
 		// Testing threading with another local method.
 		// programThreads[threadCount++] = std::thread(ThreadPrint);
 	}
 
 	graphicsEngine.StartGLWindow();
-
+	
 }
 	
 // Example of how to use the Packet data to generate messages

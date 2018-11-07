@@ -4,8 +4,10 @@
 #include <iostream>
 #include "Filter.h"
 
-CaptureEngine::CaptureEngine()
+CaptureEngine::CaptureEngine(ThreadManager * tm)
 {
+	// Set the pointer to the ThreadManager
+	threadMan = tm;
 }
 
 CaptureEngine::~CaptureEngine()
@@ -93,7 +95,7 @@ void CaptureEngine::Capture()
 void CaptureEngine::CaptureLoop()
 {
 	// Start the Timeout Thread
-	threadTimeout = std::thread(&CaptureEngine::CheckTimeout, this);
+	threadMan->Threads[threadMan->ThreadCount++] = std::thread(&CaptureEngine::CheckTimeout, this);
 	
 	// Read the packets 
 	while ((res = pcap_next_ex(pCapObj, &header, &pkt_data)) >= 0 && continueCapturing)
@@ -101,17 +103,17 @@ void CaptureEngine::CaptureLoop()
 		if (res == 0)
 			/* Timeout elapsed */
 			continue;
+		
+		// Kill this loop if the ThreadManager signals to stop all threads
+		if (!threadMan->threadsContinue) {
+			break;
+		}
 
 		// Extract TCP/IP Information and create our Packet object
 		DecodePacket();
 
 		// Display changes to the console
 		Display();
-		
-		/* ZS
-		May experiment with threading the display function... 
-		std::thread displayThread(&CaptureEngine::Display, this);
-		*/	
 	}
 
 	if (res == -1)
@@ -155,12 +157,17 @@ void CaptureEngine::DecodePacket()
 	// Create our Packet object, and push into our list
 	Packet pkt = Packet(rightNow, header->len, ih->saddr, sport, ih->daddr, dport);
 	
+	// Lock down on all Packet altering code.
+	std::unique_lock<std::mutex> uniqueLock(threadMan->muxPackets);	
+
 	// Test for the limit on captured packets, and pop the back if we've reached it.
 	while (capturedPackets.size() >= packetLimit) {
 		capturedPackets.pop_back();
 	}
 	// Push this packet into the list.
 	capturedPackets.push_front(pkt);
+
+	uniqueLock.unlock();
 
 	// Attempt to create a Connection or update existing Connection from this packet
 	CreateOrUpdateConnection(pkt);
@@ -185,9 +192,8 @@ void CaptureEngine::Display()
 		}
 	}
 	else if (consoleMode == ConnectionsMade) {
-		
-		mux.lock();
 
+		std::unique_lock<std::mutex> uniqueLock(threadMan->muxConnections);
 		/*=====================================
 		!!!	Clears the Console of all text !!!
 		======================================= */
@@ -237,10 +243,9 @@ void CaptureEngine::Display()
 			if(noFilter)
 				printf(" %i \t| %i \t\t| %s \t| %s:%s \t| %s:%s \n", con.GetTotalBytes(), con.GetPacketCount(), pktTime, con.sourceIpString.c_str(), con.sourcePortString.c_str(), con.destIpString.c_str(), con.destPortString.c_str());
 		}
+		uniqueLock.unlock();
 		Sleep(60);
 	}
-
-	mux.unlock();
 }
 
 
@@ -329,16 +334,19 @@ std::list<Packet> CaptureEngine::GetNLastPackets(int N)
 
 std::list<Connection> CaptureEngine::GetConnections()
 {
-	// Lock the thread so we can safely access the List.
-	std::unique_lock<std::mutex> uniqueLock(mux, std::defer_lock);
-	uniqueLock.lock();
 	// Make a temp list, fill it with all connections.
 	std::list<Connection> connCopy;
-	for (auto& con : connections) {
-		connCopy.push_back(con.second);
+
+	// Only process if threads should be running
+	if (threadMan->threadsContinue) {
+		// Lock the thread so we can safely access the List.
+		std::unique_lock<std::mutex> uniqueLock(threadMan->muxConnections);
+		for (auto& con : connections) {
+			connCopy.push_back(con.second);
+		}
+		// Unlock, we made our copies
+		uniqueLock.unlock();
 	}
-	// Unlock, we made our copies
-	uniqueLock.unlock();
 	return connCopy;
 }
 
@@ -403,6 +411,9 @@ void CaptureEngine::SetPacketLimit(int max)
 
 void CaptureEngine::CreateOrUpdateConnection(Packet pkt)
 {
+	// Lock the thread so we can safely modify the connection List.
+	std::unique_lock<std::mutex> uniqueLock(threadMan->muxConnections);
+
 	std::string key = ConstructKeyString(pkt);
 	// Build the key string and check if the connection exists.
 	if( ConnectionExists(pkt) ){
@@ -428,58 +439,61 @@ void CaptureEngine::CreateOrUpdateConnection(Packet pkt)
 			// Silently eat any exceptions.
 		}
 	}
+	uniqueLock.unlock();
 
 }
 
 void CaptureEngine::CheckTimeout()
 {
-	while (continueCapturing) {
+	while (threadMan->threadsContinue) {
 
-		// Used for the Packets
-		int packetSeconds;
+		// Only process if connections present.
+		if (connections.size() > 0) {
+			// Used for the Packets
+			int packetSeconds;
 
-		// Get the time right now
-		time_t rawTime;
-		time(&rawTime);
+			// Get the time right now
+			time_t rawTime;
+			time(&rawTime);
 
-		// Create tm with local time
-		tm rightNow;
-		// Update rightNow with rawTime
-		localtime_s(&rightNow, &rawTime);
+			// Create tm with local time
+			tm rightNow;
+			// Update rightNow with rawTime
+			localtime_s(&rightNow, &rawTime);
 
-		// Convert min and seconds to seconds. (Minutes * 60) + Seconds 
-		// Subtract Timeout value from seconds
-		int fiveSecondsAgo = (rightNow.tm_min * 60) + (rightNow.tm_sec - timeoutSeconds);
+			// Convert min and seconds to seconds. (Minutes * 60) + Seconds 
+			// Subtract Timeout value from seconds
+			int fiveSecondsAgo = (rightNow.tm_min * 60) + (rightNow.tm_sec - timeoutSeconds);
 
-		std::string keysToRemove[1000];
-		int keyCount = 0;
+			std::string keysToRemove[1000];
+			int keyCount = 0;
 
-		// Loop through all connections
-		for (auto& con : connections)
-		{
-			// Get the Packet time
-			tm lastPacketTime = con.second.GetLastPacketTime();
+			// Unique Lock - Stops all other threads from operating while this thread modifies Connections
+			std::unique_lock<std::mutex> uniqueLock(threadMan->muxConnections);
 
-			packetSeconds = (lastPacketTime.tm_min * 60) + lastPacketTime.tm_sec;
+			// Loop through all connections
+			for (auto& con : connections)
+			{
+				// Get the Packet time
+				tm lastPacketTime = con.second.GetLastPacketTime();
 
-			// Over the Timeout Limit, erase the connection
-			if (packetSeconds <= fiveSecondsAgo) {
-				// Store this key to remove after the loop
-				keysToRemove[keyCount++] = con.first;
+				packetSeconds = (lastPacketTime.tm_min * 60) + lastPacketTime.tm_sec;
+
+				// Over the Timeout Limit, erase the connection
+				if (packetSeconds <= fiveSecondsAgo) {
+					// Store this key to remove after the loop
+					keysToRemove[keyCount++] = con.first;
+				}
 			}
-		}
 
-		// Unique Lock - Stops all other threads from operating while this thread deletes Connections
-		std::unique_lock<std::mutex> uniqueLock(mux, std::defer_lock);
-		uniqueLock.lock();
-		// Loop through keys and remove the connections
-		for (int i = 0; i < keyCount; i++)
-		{
-			// Remove the connection with the key
-			connections.erase(keysToRemove[i]);
+			// Loop through keys and remove the connections
+			for (int i = 0; i < keyCount; i++)
+			{
+				// Remove the connection with the key
+				connections.erase(keysToRemove[i]);
+			}
+			uniqueLock.unlock();
 		}
-		uniqueLock.unlock();
-
 
 		// Wait to try again for a fifth of the Timeout Time
 		Sleep((DWORD)timeoutSeconds / 5);

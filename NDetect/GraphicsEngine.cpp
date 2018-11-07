@@ -1,11 +1,13 @@
 #include "pch.h"
 #include "GraphicsEngine.h"
 
-
-GraphicsEngine::GraphicsEngine(CaptureEngine * capEng)
+GraphicsEngine::GraphicsEngine(CaptureEngine * capEng, ThreadManager * tm)
 {
 	// Set our local pointer so we can access the Capture Engine
 	captureEngine = capEng;
+
+	// Set the ThreadManager
+	threadMan = tm;
 }
 
 GraphicsEngine::~GraphicsEngine()
@@ -109,9 +111,10 @@ void GraphicsEngine::DrawHosts()
 	float radius = circleRadius;
 
 	// Lock the thread so we can safely access the List.
-	std::unique_lock<std::mutex> uniqueLock(captureEngine->mux, std::defer_lock);
-	uniqueLock.lock();
-	for (auto& c : connectionList)
+	std::unique_lock<std::mutex> uniqueLock(threadMan->muxConnections);
+	
+
+	for (auto c : connectionList)
 	{
 		// Handle strange empty iterator behavior
 		if (c.GetTotalBytes() == -572662307) { 
@@ -201,8 +204,10 @@ void GraphicsEngine::KeyDown(unsigned char key, int x, int y)
 		break;
 	case 27:
 	case 'q':
-		// Release the thread
-		updater.detach();
+		/*
+		threadMan->threadsContinue = false;
+		threadMan->EndThreads();
+		*/
 		exit(0);
 		break;
 
@@ -293,18 +298,14 @@ void GraphicsEngine::ReadKeyStates()
 void GraphicsEngine::UpdateConnections()
 {
 	// Keep asking the CaptureEngine for updates on the Connections
-	while (true) {
-		// Wait half a second
-		Sleep(500);
-		// Prevent other threads from accessing the connectionList while we update it
-		// std::unique_lock<std::mutex> uniqueLock(captureEngine->mux, std::defer_lock);
-		// uniqueLock.lock();
+	while (threadMan->threadsContinue) {
 		// Get connections from Engine
 		connectionList = captureEngine->GetConnections();
-		// Unlock
-		// uniqueLock.unlock();
 		// Transform those connection into Visual Connections
 		ProcessConnections();
+		// Wait half a second
+		Sleep(500);
+
 	}
 }
 
@@ -359,7 +360,7 @@ void GraphicsEngine::Init()
 	glOrtho(-2.75, 2.75, 10.5, 0, -1.0, 1.0);
 
 	// Start the Updater thread
-	updater = std::thread(&GraphicsEngine::UpdateConnections, this);
+	threadMan->Threads[threadMan->ThreadCount++] = std::thread(&GraphicsEngine::UpdateConnections, this);
 
 }
 
@@ -374,7 +375,7 @@ void GraphicsEngine::StartGLWindow()
 	//callback for reshape
 	glutReshapeFunc(ResizeCallback);
 	// Callback function for handling key presses in the Graphics window
-	glutKeyboardFunc(keyDownCallBack);
+	glutKeyboardFunc(KeyDownCallBack);
 	// Key Up Callback
 	glutKeyboardUpFunc(KeyUpCallBack);
 	// Handle Special Keys pressed
@@ -382,7 +383,7 @@ void GraphicsEngine::StartGLWindow()
 	// Handle Special Keys released
 	glutSpecialUpFunc(SpecialKeyUpCallBack);
 	// Function called while the Graphics Framework is idle
-	glutIdleFunc(idleCallBack);
+	glutIdleFunc(IdleCallBack);
 	// Opens the Graphics window.
 	// Warning, this function DOES NOT RETURN!
 	// Once called, we have no control of the codebase besides callbacks set above.
@@ -409,8 +410,8 @@ void GraphicsEngine::StartGLWindow()
 */
 void GraphicsEngine::DisplayCallback() { currentInstance->Display();}
 void GraphicsEngine::ResizeCallback(int width, int height){	currentInstance->Resize(width, height);}
-void GraphicsEngine::idleCallBack(){currentInstance->Idle();}
-void GraphicsEngine::keyDownCallBack(unsigned char key, int x, int y){ currentInstance->KeyDown(key, x, y); }
+void GraphicsEngine::IdleCallBack(){currentInstance->Idle();}
+void GraphicsEngine::KeyDownCallBack(unsigned char key, int x, int y){ currentInstance->KeyDown(key, x, y); }
 void GraphicsEngine::KeyUpCallBack(unsigned char key, int x, int y){ currentInstance->KeyUp(key, x, y); }
 void GraphicsEngine::SpecialKeyDownCallBack(int key, int x, int y){	currentInstance->SpecialKeyDown(key, x, y); }
 void GraphicsEngine::SpecialKeyUpCallBack(int key, int x, int y){ currentInstance->SpecialKeyUp(key, x, y); }

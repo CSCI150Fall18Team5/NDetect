@@ -55,8 +55,8 @@ class GraphicsEngine
 	// Connections obtained from the CaptureEngine
 	std::list<Connection> connectionList;
 
-	// Grabs updated list of Connections
-	std::thread updater;
+	// Manages running threads and holds between them.
+	ThreadManager * threadMan;
 
 	////////////////////////
 	// Graphics Constants
@@ -66,7 +66,7 @@ class GraphicsEngine
 
 
 public:
-	GraphicsEngine(CaptureEngine * capEng);
+	GraphicsEngine(CaptureEngine * capEng, ThreadManager * tm);
 	~GraphicsEngine();
 
 	// Display function draws all elements.
@@ -106,8 +106,8 @@ public:
 	// Callback functions
 	static void DisplayCallback();
 	static void ResizeCallback(int width, int height);
-	static void idleCallBack();
-	static void keyDownCallBack(unsigned char key, int x, int y);
+	static void IdleCallBack();
+	static void KeyDownCallBack(unsigned char key, int x, int y);
 	static void KeyUpCallBack(unsigned char key, int x, int y);
 	static void SpecialKeyDownCallBack(int key, int x, int y);
 	static void SpecialKeyUpCallBack(int key, int x, int y);
