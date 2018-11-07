@@ -1,7 +1,4 @@
 #pragma once
-#include <map>
-#include <fstream>
-#include <iostream>
 #include "pch.h"
 #include "DTOs.h"
 #include <string>
@@ -16,6 +13,10 @@ class Filter
 	std::string targetDestIP = "";
 	std::string targetLocalPort = "";
 	std::string targetDestPort = "";
+
+
+	// map with port number value and port Description
+	std::map<std::string, std::vector<std::string>> portSelect;
 
 
 public:
@@ -37,6 +38,7 @@ public:
 	std::string GetDestTargetIP();
 	std::string GetLocalTargetPort();
 	std::string GetDestTargetPort();
+	std::string GetLocalPortfromMap(std::string key);
 
 	// Method to show Target IP
 	void ShowTargetIP();

@@ -65,6 +65,18 @@ int main(int argc, char **argv)
 	// Records the user choice
 	captureEngine.SelectInterface();
 
+
+	// Test the map
+
+	while (true)
+	{
+		std::string temp;
+		std::cout << "enter port alias\n";
+		std::cin >> temp;
+		std::cout << captureEngine.myFilter->GetLocalPortfromMap(temp)<<"\n";
+	}
+
+
 	// Enter Filter
 	std::cout << "Do you want to apply a filter (yes/no)? \n";
 	std::cin >> choice;

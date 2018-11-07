@@ -1,7 +1,3 @@
-#include <map>
-#include <fstream>
-#include <iostream>
-#include <string>
 #include "pch.h"
 #include "Filter.h"
 #include "DTOs.h"
@@ -70,6 +66,8 @@ void Filter::setMapPort()
 		// asses the second position in the row
 		std::string::size_type posn2;
 
+		// Vector that contains port number and description
+		std::vector<std::string> values;
 
 		posn = rowString.find('\t');
 		port = rowString.substr(0, posn);
@@ -79,9 +77,15 @@ void Filter::setMapPort()
 		rowString.erase(0, posn + 1);
 		description = rowString;
 
+		// stores the description and port in a vector
+		values.push_back(description);
+		values.push_back(port);
+
+		// use alias as key to get port number and description
+		portSelect[alias] = values;
 		
 		//  display 
-		std::cout <<alias<<"++"<<port<<"--"<<description<<"\n";
+		//std::cout <<alias<<"++"<<port<<"--"<<description<<"\n";
 	}
 	myFile.close();
 }
@@ -104,6 +108,17 @@ std::string Filter::GetLocalTargetPort()
 std::string Filter::GetDestTargetPort()
 {
 	return std::string(targetDestPort);
+}
+
+std::string Filter::GetLocalPortfromMap(std::string key)
+{
+	std::string getPort;
+	std::vector<std::string> Cube;
+
+	Cube = portSelect[key];
+	getPort = Cube[1];
+
+	return getPort;
 }
 
 
