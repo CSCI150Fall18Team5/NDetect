@@ -1,15 +1,11 @@
 #include "pch.h"
 #include "CaptureEngine.h"
-#include "GraphicsEngine.h"
 #include <string>
 
 //
 // NOTE: remember to include WPCAP and HAVE_REMOTE among your
 // preprocessor definitions.
 //
-
-// Graphics Engine performs all the visual representation
-GraphicsEngine graphicsEngine;
 
 // Handles all the Packet Capture Logic
 CaptureEngine captureEngine;
@@ -91,6 +87,9 @@ int main(int argc, char **argv)
 		
 	// Set the capture mode
 	captureEngine.SetCaptureMode(0);
+
+	// Select the Interfeace
+	captureEngine.SelectInterface();
 
 	// Set the Connection Timeout in Seconds
 	captureEngine.SetTimeout(5);
