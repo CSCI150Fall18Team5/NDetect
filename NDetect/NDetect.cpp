@@ -70,13 +70,13 @@ int main(int argc, char **argv)
 
 	// Test the map
 
-	while (true)
-	{
-		std::string temp;
-		std::cout << "enter port alias\n";
-		std::cin >> temp;
-		std::cout << "is it an alias? " << isAliasPort(temp)<<"\n";
-	}
+//	while (true)
+//	{
+//		std::string temp;
+//		std::cout << "enter port alias\n";
+//		std::cin >> temp;
+//		std::cout << "is it an alias? " << isaliasport(temp)<<"\n";//		std::cout << captureengine.myfilter->getlocalportfrommap(temp)<<"\n";
+//	}
 
 
 	// Enter Filter
@@ -85,22 +85,26 @@ int main(int argc, char **argv)
 	
 	if (choice == "yes")
 	{
-		std::cout << "Enter 1 for Local IP\n	Enter 2 for Destination IP\n	Enter 3 for Local Port\n	Enter 4 for Destination Port\n";
+		std::cout << "	Enter 1 for Local IP\n	Enter 2 for Destination IP\n	Enter 3 for Local Port\n	Enter 4 for Destination Port\n";
 		std::cin >> typeOfFilter;
-		std::cout << "Enter IP or Port number";
+		std::cout << "Enter IP or Port number\n";
 		std::cin >> choice;
 		switch (typeOfFilter)
 		{
-			case 1: // Local IP
+			case 1: // set Local IP
 				captureEngine.myFilter->SetLocalTargetIP(choice);
 				break;
-			case 2: //  Destination IP
+			case 2: // set Destionation IP
 				captureEngine.myFilter->SetDestTargetIP(choice);
 				break;
-			case 3: // Local Port
+			case 3: // set Local Port
+				if(isAliasPort(choice))
+					choice = captureEngine.myFilter->GetLocalPortfromMap(choice);
 				captureEngine.myFilter->SetLocalTargetPort(choice);
 				break;
-			case 4: // Destination Port
+			case 4: // Set Destination Port
+				if(isAliasPort(choice))
+					choice = captureEngine.myFilter->GetLocalPortfromMap(choice);
 				captureEngine.myFilter->SetDestTargetPort(choice);
 				break;
  		default:
