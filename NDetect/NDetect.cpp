@@ -7,6 +7,8 @@
 // preprocessor definitions.
 //
 
+// checks if user enteres an alias port
+bool isAliasPort(std::string port);
 
 // Handles all the Packet Capture Logic
 CaptureEngine captureEngine;
@@ -73,7 +75,7 @@ int main(int argc, char **argv)
 		std::string temp;
 		std::cout << "enter port alias\n";
 		std::cin >> temp;
-		std::cout << captureEngine.myFilter->GetLocalPortfromMap(temp)<<"\n";
+		std::cout << "is it an alias? " << isAliasPort(temp)<<"\n";
 	}
 
 
@@ -89,17 +91,17 @@ int main(int argc, char **argv)
 		std::cin >> choice;
 		switch (typeOfFilter)
 		{
-			case 1:
+			case 1: // Local IP
 				captureEngine.myFilter->SetLocalTargetIP(choice);
 				break;
-			case 2:
+			case 2: //  Destination IP
 				captureEngine.myFilter->SetDestTargetIP(choice);
 				break;
-			case 3:
+			case 3: // Local Port
 				captureEngine.myFilter->SetLocalTargetPort(choice);
 				break;
-			case 4:
-			//	captureEngine.myFilter->SetDestTargetPort(choice);
+			case 4: // Destination Port
+				captureEngine.myFilter->SetDestTargetPort(choice);
 				break;
  		default:
 			std::cout << "Answer out of scope\n";
@@ -154,6 +156,19 @@ void ThreadPrint()
 		Sleep(1000);
 		secondsPassed++;
 	}
+
+}
+
+bool isAliasPort(std::string port)
+{
+// Port number will be consider from 0 - 9
+// else its an alias
+	bool isAlias = true;
+
+	if ((int)port[0] > 47 && (int)port[0] < 58)
+		isAlias = false;
+
+	return isAlias;
 
 }
 
