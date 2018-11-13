@@ -15,7 +15,30 @@ void CaptureEngine::Init()
 
 
 }
+void CaptureEngine::Display_Mode() {
+	printf("Choose type of Mode: (1)Live Stream, (2) Statistic, (3) Both Stats N Live, (4)Connections");
+	scanf_s("%d", &input);
+	int temp = (int)input;
+	if (temp < 1 || temp > i) {
+		printf("Input is out of range");
+		return;
+	}
+	switch (temp) {
+	case 1:
+		DisplayPacketData(input);
+		break;
+	case 2:
+		DisplayPacketData(input);
+	case 3:
+		DisplayPacketData(input);
+	case 4:
+		DisplayPacketData(input);
+	default:
+		printf("Options for Display mode was not in range. Pick 1-4");
+		return;
+	}
 
+}
 void CaptureEngine::SelectInterface()
 {
 	//  Find available devices
@@ -24,7 +47,7 @@ void CaptureEngine::SelectInterface()
 		fprintf(stderr, "Error in pcap_findalldevs_ex: %s\n", errbuf);
 		return;
 	}
-
+	//Display_Mode();
 	// Print the list 
 	int i = 0;
 	for(d = alldevs; d; d = d->next)
@@ -35,7 +58,7 @@ void CaptureEngine::SelectInterface()
 
 	printf("Enter the interface number (1-%d):", i);
 	scanf_s("%d", &inum);
-
+	
 	if ((int)inum < 1 || (int)inum > i)
 	{
 		printf("\nInterface number out of range.\n");
@@ -44,6 +67,7 @@ void CaptureEngine::SelectInterface()
 		pcap_freealldevs(alldevs);
 		return;
 	}
+	Display_Mode();
 
 	// Jump to the selected adapter
 	for (d = alldevs, i = 0; i < (int)inum - 1; d = d->next, i++);
@@ -53,29 +77,37 @@ void CaptureEngine::SelectInterface()
 }
 
 void CaptureEngine::Capture(int mode = 0)
-{	
-	// Open the device 
-	if ((pCapObj = pcap_open(interfaceName.c_str(),
-		100 /*snaplen*/,
-		mode /*flags*/,
-		20 /*read timeout*/,
-		NULL /* remote authentication */,
-		errbuf)
-		) == NULL)
-	{
-		fprintf(stderr, "\nError opening adapter\n");
-		return;
-	}
-
-	// Now that the pCapObj is created, we can just tap into the capture stream.
-	this->DisplayPacketData();
-
+{
+			printf("Value of i: ", i);
+			if ((pCapObj = pcap_open(interfaceName.c_str(),
+				100 /*snaplen*/,
+				mode /*flags*/,
+				20 /*read timeout*/,
+				NULL /* remote authentication */,
+				errbuf)
+				) == NULL)
+			{
+				fprintf(stderr, "\nError opening adapter\n");
+				return;
+			}
+	
+		// Now that the pCapObj is created, we can just tap into the capture stream.
+		this->DisplayPacketData(input);
+	
+	
 	return;
 }
 
 // Loop function that uses packets from the PCAP interface to display packet data.
-void CaptureEngine::DisplayPacketData()
+void CaptureEngine::DisplayPacketData(int input)
 {
+
+	//this->Display_Mode();
+
+	int defaultpacket_size = 50;
+	for (int i = 0; i <= defaultpacket_size; i++) {
+		// Open the device 
+		if (i == defaultpacket_size) { break; }
 
 	// Read the packets 
 	while ((res = pcap_next_ex(pCapObj, &header, &pkt_data)) >= 0)
@@ -92,6 +124,8 @@ void CaptureEngine::DisplayPacketData()
 		printf("%ld:%ld (%ld)\n", header->ts.tv_sec, header->ts.tv_usec, header->len);
 
 		// Loop through Packet data
+		
+
 		for (i = 1; (i < header->caplen + 1); i++)
 		{
 			/*
@@ -130,6 +164,9 @@ void CaptureEngine::DisplayPacketData()
 	}
 }
 
+
+//void CaptureEngine::LiveStream() {
+//}
 /* Helper Functions
 
 

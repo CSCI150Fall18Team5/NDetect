@@ -12,6 +12,7 @@ class CaptureEngine
 	// Holds the packet capture object
 	pcap_t * pCapObj;
 	u_int inum, i = 0;
+	u_int input;
 	// Error buffer object
 	char errbuf[PCAP_ERRBUF_SIZE];
 	int res;
@@ -40,5 +41,9 @@ public:
 	// Prints the interfaces
 	void ifprint(pcap_if_t *d, int i);
 	char * iptos(u_long in);
+	// User chooses which mode to view the packets 
+	void Display_Mode();
+	//Live stream will get the last 40-50 packets and display them 
+	//void LiveStream();
 };
 
