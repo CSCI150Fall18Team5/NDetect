@@ -26,8 +26,6 @@ bool continueSecondUpdate = true;
 
 // Threaded function declaration.
 void ThreadPrint();
-// Ctrl-C handler declaration.
-BOOL WINAPI CtrlHandler(DWORD fdwCtrlType);
 
 // Holds taget IP
 std::string targetIP="";
@@ -56,6 +54,7 @@ void JoinThreads() {
 
 
 int main(int argc, char **argv)
+
 {
 	// initialize map
 	captureEngine.myFilter->setMapPort();
@@ -67,22 +66,19 @@ int main(int argc, char **argv)
 	// Records the user choice
 	captureEngine.SelectInterface();
 
-
 	// Test the map
-
-//	while (true)
-//	{
-//		std::string temp;
-//		std::cout << "enter port alias\n";
-//		std::cin >> temp;
-//		std::cout << "is it an alias? " << isaliasport(temp)<<"\n";//		std::cout << captureengine.myfilter->getlocalportfrommap(temp)<<"\n";
-//	}
-
+  //	while (true)
+  //	{
+  //		std::string temp;
+  //		std::cout << "enter port alias\n";
+  //		std::cin >> temp;
+  //		std::cout << "is it an alias? " << isaliasport(temp)<<"\n";//		std::cout << captureengine.myfilter->getlocalportfrommap(temp)<<"\n";
+  //	}
 
 	// Enter Filter
 	std::cout << "Do you want to apply a filter (yes/no)? \n";
 	std::cin >> choice;
-	
+		
 	if (choice == "yes")
 	{
 		std::cout << "	Enter 1 for Local IP\n	Enter 2 for Destination IP\n	Enter 3 for Local Port\n	Enter 4 for Destination Port\n";
@@ -107,7 +103,7 @@ int main(int argc, char **argv)
 					choice = captureEngine.myFilter->GetLocalPortfromMap(choice);
 				captureEngine.myFilter->SetDestTargetPort(choice);
 				break;
- 		default:
+		default:
 			std::cout << "Answer out of scope\n";
 			break;
 		}
@@ -115,9 +111,12 @@ int main(int argc, char **argv)
 	else {
 		captureEngine.noFilter = true;
 	}
-	
+		
 	// Set the capture mode
 	captureEngine.SetCaptureMode(0);
+
+	// Select the Interfeace
+	captureEngine.SelectInterface();
 
 	// Set the Connection Timeout in Seconds
 	captureEngine.SetTimeout(5);

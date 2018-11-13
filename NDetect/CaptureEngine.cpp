@@ -110,15 +110,6 @@ void CaptureEngine::CaptureLoop()
 		May experiment with threading the display function... 
 		std::thread displayThread(&CaptureEngine::Display, this);
 		*/	
-
-		// Erase Connections older than the timeout
-		// CheckTimeout();
-	}
-
-	// If we stop the output by triggering CTRL+C
-	// Just sleep until the program quits
-	while (!continueCapturing) {
-		Sleep(1000);
 	}
 
 	if (res == -1)
