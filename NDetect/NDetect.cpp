@@ -105,7 +105,7 @@ int main(int argc, char **argv)
 		captureEngine.SetCaptureMode(0);
 	
 		// Set the Connection Timeout in Seconds
-		captureEngine.SetTimeout(5);
+		captureEngine.SetTimeout(20);
 
 		// Set the Console output mode
 		captureEngine.SetConsoleMode(ConnectionsMade);

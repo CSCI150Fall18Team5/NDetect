@@ -127,6 +127,8 @@ class Connection : public Packet {
 	// Used for checking how long ago this connection was used
 	struct tm lastPacketTime;
 
+	bool isLocalHost = false;
+
 public:
 
 	Connection();
@@ -144,6 +146,7 @@ public:
 	int GetTotalBytes();
 	int GetPacketCount();
 	struct tm GetLastPacketTime();
+	bool isLocalHostConnection();
 };
 
 
@@ -173,7 +176,7 @@ public:
 
 	// Object Radius
 	float radius = 0.25;
-
+	
 	// Translation
 	float tX = 0.0, tY = 0.0, tZ = 0.0;
 
@@ -183,7 +186,12 @@ public:
 	// Scale
 	float sX = 1.0f, sY = 1.0f, sZ = 1.0f;
 
+	// Destination Connections
+	VisualConnection * DestConns[10];
+	int DestCount = 0;
+
 	VisualConnection();
+	VisualConnection(std::string name);
 	VisualConnection(std::string name, Connection con);
 
 	// VisualConnection& operator=(const Connection con);
@@ -191,8 +199,8 @@ public:
 	void SetTranslation(float x, float y, float z);
 	void SetRotation(float angle, float x, float y, float z);
 	void SetScale(float x, float y, float z);
-
-
+	void SetColor(float r, float g, float b);
+	void SetDestination(VisualConnection * vCon);
 
 };
 

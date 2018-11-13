@@ -15,8 +15,9 @@ public:
 	std::condition_variable condVar;
 
 	// Mutual Exclusion, used to stop multiple threads
-	std::mutex muxConnections;
 	std::mutex muxPackets;
+	std::mutex muxConnections;
+	std::mutex muxVisualConnections;
 
 	// All the threads we need
 	static const int ThreadMax = 10;

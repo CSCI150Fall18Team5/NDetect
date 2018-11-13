@@ -95,6 +95,10 @@ class CaptureEngine
 	// Captures the interface name during SelectInterface()
 	std::string interfaceName = "";
 
+	// Host IP Address
+	std::string HostIP;
+	int hostAddrHops = 0;
+
 	// Slows the flow of packets on the console during DisplayPacketData()
 	// packets stay on screen longer for longer packets of data.
 	double sleepTime = 0.2;
@@ -108,6 +112,7 @@ class CaptureEngine
 	// List of Packets captured
 	std::list<Packet> capturedPackets;
 	int packetLimit = 20000;
+	int packetCount = 0;
 
 	// Connection map
 	/*
@@ -163,8 +168,12 @@ public:
 	// Shows the data inside the packet
 	void DisplayPacketData();
 
-	// Get the Mutex from this class
-	std::mutex GetMutex();
+	// Simple Getters
+	std::string GetHostIP();
+
+	int GetPacketCount();
+
+	ConsoleMode GetConsoleMode();
 
 	// Getter for Packet List
 	std::list<Packet> GetPacketList();
@@ -173,7 +182,7 @@ public:
 	std::list<Packet> GetNLastPackets(int N);
 
 	// Get a copy of all the current connections in a list
-	std::list<Connection> GetConnections();
+	std::list <Connection> GetConnections();
 
 	// Constructs the key string for accessing a Connection in connections
 	std::string ConstructKeyString(Packet pkt);

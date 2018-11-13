@@ -65,6 +65,21 @@ void CaptureEngine::SelectInterface()
 	
 	// Set the local Interface Name for use later
 	interfaceName = d->name;
+	
+	// Temp Address object
+	pcap_addr_t *a = d->addresses;
+	
+	// Loop through as many times as 
+	if (hostAddrHops > 1) {
+		for (int i = 0; i <= hostAddrHops; i++)
+		{
+			if( a->next != nullptr )
+				a = a->next;
+		}
+
+		HostIP = iptos(((struct sockaddr_in *)a->addr)->sin_addr.s_addr);
+	}
+
 }
 
 void CaptureEngine::Capture()
@@ -166,6 +181,8 @@ void CaptureEngine::DecodePacket()
 	}
 	// Push this packet into the list.
 	capturedPackets.push_front(pkt);
+	// Update the packet count size
+	packetCount = capturedPackets.size();
 
 	uniqueLock.unlock();
 
@@ -176,6 +193,10 @@ void CaptureEngine::DecodePacket()
 
 void CaptureEngine::Display()
 {
+	// Lock down all other threads so we can display without anything changing
+	std::unique_lock<std::mutex> lockConns(threadMan->muxConnections);
+	std::unique_lock<std::mutex> lockPackets(threadMan->muxPackets);
+
 	// Handle Console Display 
 	if (consoleMode == LiveStream) {
 
@@ -193,7 +214,7 @@ void CaptureEngine::Display()
 	}
 	else if (consoleMode == ConnectionsMade) {
 
-		std::unique_lock<std::mutex> uniqueLock(threadMan->muxConnections);
+
 		/*=====================================
 		!!!	Clears the Console of all text !!!
 		======================================= */
@@ -211,9 +232,7 @@ void CaptureEngine::Display()
 		printf(" Bytes \t| Packets\t|  Time \t| Source_IP:Port \t| Destination_IP:Port \n\r");
 		printf("=========================================================================================\n\r");
 		
-		// Only show the 30 newest Connections, obtained by getting the 30 latest packets
-		// std::list<Packet> last30Packets = GetNLastPackets(30);
-		
+		// Only show the 30 newest Connections		
 		const int connectionLimit = 30;
 		int counter = 0;
 		// C++ magic right here.
@@ -243,9 +262,11 @@ void CaptureEngine::Display()
 			if(noFilter)
 				printf(" %i \t| %i \t\t| %s \t| %s:%s \t| %s:%s \n", con.GetTotalBytes(), con.GetPacketCount(), pktTime, con.sourceIpString.c_str(), con.sourcePortString.c_str(), con.destIpString.c_str(), con.destPortString.c_str());
 		}
-		uniqueLock.unlock();
-		Sleep(60);
 	}
+
+	lockConns.unlock();
+	lockPackets.unlock();
+	Sleep(100);
 }
 
 
@@ -269,7 +290,6 @@ void CaptureEngine::DisplayPacketHeader() {
 
 	// print pkt timestamp and pkt len
 	// printf("%ld:%ld (%ld)\n", header->ts.tv_sec, header->ts.tv_usec, header->len);
-	
 }
 
 void CaptureEngine::DisplayPacketData()
@@ -303,7 +323,21 @@ void CaptureEngine::DisplayPacketData()
 			printf("\n");
 		}
 	}
+}
 
+std::string CaptureEngine::GetHostIP()
+{
+	return HostIP;
+}
+
+int CaptureEngine::GetPacketCount()
+{
+	return packetCount;
+}
+
+ConsoleMode CaptureEngine::GetConsoleMode()
+{
+	return consoleMode;
 }
 
 // Returns our running list
@@ -332,10 +366,10 @@ std::list<Packet> CaptureEngine::GetNLastPackets(int N)
 	
 }
 
-std::list<Connection> CaptureEngine::GetConnections()
+std::list <Connection> CaptureEngine::GetConnections()
 {
 	// Make a temp list, fill it with all connections.
-	std::list<Connection> connCopy;
+	std::list <Connection> connCopy;
 
 	// Only process if threads should be running
 	if (threadMan->threadsContinue) {
@@ -536,6 +570,10 @@ void CaptureEngine::ifprint(pcap_if_t *d, int i)
 
 	/* IP addresses */
 	for (a = d->addresses; a; a = a->next) {
+		
+		// Avoid printing if not a valid address family
+		if (a->addr->sa_family == 23) { continue; }
+
 		printf("\tAddress Family: #%d\n", a->addr->sa_family);
 
 		switch (a->addr->sa_family)
@@ -543,7 +581,10 @@ void CaptureEngine::ifprint(pcap_if_t *d, int i)
 		case AF_INET:
 			printf("\tAddress Family Name: AF_INET\n");
 			if (a->addr)
+			{
 				printf("\tAddress: %s\n", iptos(((struct sockaddr_in *)a->addr)->sin_addr.s_addr));
+				hostAddrHops++;
+			}
 			if (a->netmask)
 				printf("\tNetmask: %s\n", iptos(((struct sockaddr_in *)a->netmask)->sin_addr.s_addr));
 			if (a->broadaddr)

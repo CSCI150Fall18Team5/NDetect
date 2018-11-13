@@ -187,9 +187,19 @@ tm Connection::GetLastPacketTime()
 	return lastPacketTime;
 }
 
+bool Connection::isLocalHostConnection()
+{
+	return this->isLocalHost;
+}
+
 VisualConnection::VisualConnection()
 {
 
+}
+
+VisualConnection::VisualConnection(std::string name)
+{
+	Name = name;
 }
 
 VisualConnection::VisualConnection(std::string name, Connection con)
@@ -199,9 +209,8 @@ VisualConnection::VisualConnection(std::string name, Connection con)
 	conn = con;
 
 	this->packetCount = conn.GetPacketCount();
-
 	this->totalBytes = conn.GetTotalBytes();
-
+	this->isLocalHost = conn.isLocalHostConnection();
 }
 
 /*
@@ -231,4 +240,17 @@ void VisualConnection::SetScale(float x, float y, float z)
 	sX = x;
 	sY = y;
 	sZ = z;
+}
+
+void VisualConnection::SetColor(float r, float g, float b)
+{
+	Red = r;
+	Green = g;
+	Blue = b;
+}
+
+void VisualConnection::SetDestination(VisualConnection * vCon)
+{
+	// Set another destination 
+	DestConns[DestCount++] = vCon;
 }
