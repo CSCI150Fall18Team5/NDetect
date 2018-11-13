@@ -1,7 +1,5 @@
 #include "pch.h"
 #include "CaptureEngine.h"
-#include <string>
-#include <iostream>
 #include "Filter.h"
 
 CaptureEngine::CaptureEngine()

@@ -1,8 +1,8 @@
 #include "pch.h"
 #include "Filter.h"
 #include "DTOs.h"
-#include <string>
-#include <iostream>
+
+
 
 Filter::Filter()
 {
@@ -41,6 +41,55 @@ void Filter::SetDestTargetPort(std::string port)
 	targetDestPort = port;
 }
 
+void Filter::setMapPort()
+{
+	// creates stream object
+	std::ifstream myFile("WellKnownPorts.txt");
+	std::string rowString;
+
+	// string that will hold the alias
+	std::string alias;
+	// string that will hold the port
+	std::string port;
+	// string that will hold the description
+	std::string description;
+
+	if (!myFile.is_open())
+	{
+		std::cout << "Input File could not be opened! Exploding in 5 sec!!!";
+		return;
+	}
+	while (std::getline(myFile, rowString))
+	{
+		// asses the position in the row of ' ' and gets the first int
+		std::string::size_type posn;
+		// asses the second position in the row
+		std::string::size_type posn2;
+
+		// Vector that contains port number and description
+		std::vector<std::string> values;
+
+		posn = rowString.find('\t');
+		port = rowString.substr(0, posn);
+		rowString.erase(0, posn+1);
+		posn = rowString.find('\t',posn);
+		alias = rowString.substr(0, posn);
+		rowString.erase(0, posn + 1);
+		description = rowString;
+
+		// stores the description and port in a vector
+		values.push_back(description);
+		values.push_back(port);
+
+		// use alias as key to get port number and description
+		portSelect[alias] = values;
+		
+		//  display 
+		//std::cout <<alias<<"++"<<port<<"--"<<description<<"\n";
+	}
+	myFile.close();
+}
+
 std::string Filter::GetLocalTargetIP()
 {
 	return std::string(targetLocalIP);
@@ -59,6 +108,17 @@ std::string Filter::GetLocalTargetPort()
 std::string Filter::GetDestTargetPort()
 {
 	return std::string(targetDestPort);
+}
+
+std::string Filter::GetLocalPortfromMap(std::string key)
+{
+	std::string getPort;
+	std::vector<std::string> Cube;
+
+	Cube = portSelect[key];
+	getPort = Cube[1];
+
+	return getPort;
 }
 
 
