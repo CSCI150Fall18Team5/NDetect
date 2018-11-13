@@ -9,6 +9,8 @@
 // preprocessor definitions.
 //
 
+// checks if user enteres an alias port
+bool isAliasPort(std::string port);
 // Create our Master of Threads
 ThreadManager threadMan;
 
@@ -59,13 +61,37 @@ void JoinThreads() {
 
 
 int main(int argc, char **argv)
+
 {
+	// initialize map
+	captureEngine.myFilter->setMapPort();
+
+	// Configures the program to handle CTRL+C and other events when focused on the console.
+	SetConsoleCtrlHandler(CtrlHandler, true);
 	bool CaptureOn = true;
 	bool GraphicsOn = false;
 
 	// Initialize GLUT Framework
 	glutInit(&argc, argv);
 
+	// Test the map
+  //	while (true)
+  //	{
+  //		std::string temp;
+  //		std::cout << "enter port alias\n";
+  //		std::cin >> temp;
+  //		std::cout << "is it an alias? " << isaliasport(temp)<<"\n";//		std::cout << captureengine.myfilter->getlocalportfrommap(temp)<<"\n";
+  //	}
+
+	// Enter Filter
+	std::cout << "Do you want to apply a filter (yes/no)? \n";
+	std::cin >> choice;
+		
+	if (choice == "yes")
+	{
+		std::cout << "	Enter 1 for Local IP\n	Enter 2 for Destination IP\n	Enter 3 for Local Port\n	Enter 4 for Destination Port\n";
+		std::cin >> typeOfFilter;
+		std::cout << "Enter IP or Port number\n";
 	if (CaptureOn) {
 
 		// Enter Filter
@@ -74,6 +100,7 @@ int main(int argc, char **argv)
 
 		if (choice == "yes")
 		{
+			case 1: // set Local IP
 			std::cout << "Enter 1 for Local IP\n	Enter 2 for Destination IP\n	Enter 3 for Local Port\n	Enter 4 for Destination Port\n";
 			std::cin >> typeOfFilter;
 			std::cout << "Enter IP or Port number";
@@ -83,20 +110,36 @@ int main(int argc, char **argv)
 			case 1:
 				captureEngine.myFilter->SetLocalTargetIP(choice);
 				break;
-			case 2:
+			case 2: // set Destionation IP
 				captureEngine.myFilter->SetDestTargetIP(choice);
 				break;
-			case 3:
+			case 3: // set Local Port
+				if(isAliasPort(choice))
+					choice = captureEngine.myFilter->GetLocalPortfromMap(choice);
 				captureEngine.myFilter->SetLocalTargetPort(choice);
 				break;
+			case 4: // Set Destination Port
+				if(isAliasPort(choice))
+					choice = captureEngine.myFilter->GetLocalPortfromMap(choice);
+				captureEngine.myFilter->SetDestTargetPort(choice);
 			case 4:
 				//	captureEngine.myFilter->SetDestTargetPort(choice);
 				break;
+		default:
+			std::cout << "Answer out of scope\n";
+			break;
 			default:
 				std::cout << "Answer out of scope\n";
 				break;
 			}
 		}
+	}
+	else {
+		captureEngine.noFilter = true;
+	}
+		
+	// Set the capture mode
+	captureEngine.SetCaptureMode(0);
 		else {
 			captureEngine.noFilter = true;
 		}
@@ -107,6 +150,11 @@ int main(int argc, char **argv)
 		// Set the Connection Timeout in Seconds
 		captureEngine.SetTimeout(20);
 
+	// Select the Interfeace
+	captureEngine.SelectInterface();
+
+	// Set the Connection Timeout in Seconds
+	captureEngine.SetTimeout(5);
 		// Set the Console output mode
 		captureEngine.SetConsoleMode(ConnectionsMade);
 
@@ -150,4 +198,71 @@ void ThreadPrint()
 		secondsPassed++;
 	}
 
+}
+
+bool isAliasPort(std::string port)
+{
+// Port number will be consider from 0 - 9
+// else its an alias
+	bool isAlias = true;
+
+	if ((int)port[0] > 47 && (int)port[0] < 58)
+		isAlias = false;
+
+	return isAlias;
+
+}
+
+/*
+	Sourced from: https://docs.microsoft.com/en-us/windows/console/registering-a-control-handler-function
+	Handles when CTRL+C and other events are pressed during execution.
+*/
+BOOL WINAPI CtrlHandler(DWORD fdwCtrlType)
+{
+	switch (fdwCtrlType)
+	{
+		// Handle the CTRL-C signal. 
+	case CTRL_C_EVENT:
+		// Lock this thread
+		mux.lock();	
+		// Stop the Capturing Output
+		captureEngine.SetContinueCapturing(false);
+		// Stop the Update message
+		continueSecondUpdate = false;
+		// Detach all threads so they can safely be deleted.
+		for (int i = 0; i < threadCount; i++)
+		{
+			// Kill the other threads
+			programThreads[i].detach();
+		}
+		std::cout << " \n\n CTRL+C pressed, exiting... \n\n\n";
+		Sleep(1500);
+		// Unlock and exit
+		mux.unlock();		
+		exit(0);
+
+	case CTRL_CLOSE_EVENT:
+		Beep(600, 200);
+		printf("Ctrl-Close event\n\n");
+		return TRUE;
+
+		// Pass other signals to the next handler. 
+	case CTRL_BREAK_EVENT:
+		Beep(900, 200);
+		printf("Ctrl-Break event\n\n");
+		return TRUE;
+
+	case CTRL_LOGOFF_EVENT:
+		Beep(1000, 200);
+		printf("Ctrl-Logoff event\n\n");
+		return FALSE;
+
+	case CTRL_SHUTDOWN_EVENT:
+		Beep(750, 500);
+		printf("Ctrl-Shutdown event\n\n");
+		return FALSE;
+
+	default:
+		return FALSE;
+	}
 }
