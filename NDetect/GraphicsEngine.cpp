@@ -195,8 +195,8 @@ void GraphicsEngine::DrawHostLines()
 
 void GraphicsEngine::DrawHostLine(VisualConnection vCon)
 {
-	if (vCon.DestCount > 0) {
-		glLineWidth(vCon.conn.GetPacketCount() / 10);
+	if (vCon.DestCount > 0 && vCon.DestCount <= 20) {
+		glLineWidth(vCon.conn.GetPacketCount() / 4);
 		glColor3f(0.8, 1.0, 0.8);	
 		for (int i = 0; i < vCon.DestCount; i++) {
 			glBegin(GL_LINES);
