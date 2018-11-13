@@ -1,5 +1,7 @@
 #include "pch.h"
 #include "CaptureEngine.h"
+#include "ThreadManager.h"
+#include "GraphicsEngine.h"
 #include <string>
 
 //
@@ -10,16 +12,14 @@
 // checks if user enteres an alias port
 bool isAliasPort(std::string port);
 
+// Thread Manager
+ThreadManager threadMan;
+
 // Handles all the Packet Capture Logic
-CaptureEngine captureEngine;
+CaptureEngine captureEngine(&threadMan);
 
-// Thread holder
-std::thread programThreads[10];
-int threadCount = 0;
-
-// Mutual Exclusion
-// Used to give one thread exclusive operation, which prevent code interleaving
-std::mutex mux;
+// Graphics Manager
+GraphicsEngine graphics(&captureEngine, &threadMan);
 
 // Controls the "Every-Second" Print Thread 
 bool continueSecondUpdate = true;
@@ -36,44 +36,20 @@ std::string choice;
 // type of filter
 int typeOfFilter = 0;
 
-
-void JoinThreads() {
-
-	// Wait for all threads to finish before proceeding.
-	for (int i = 0; i < threadCount; i++)
-	{
-		// Threads may have been detached when CTRL+C was triggered.
-		// Only join joinable threads.
-		if (programThreads[i].joinable())
-		{
-			programThreads[i].join();
-		}
-	}
-
-}
-
-
 int main(int argc, char **argv)
 
 {
 	// initialize map
 	captureEngine.myFilter->setMapPort();
-
-	// Configures the program to handle CTRL+C and other events when focused on the console.
-	SetConsoleCtrlHandler(CtrlHandler, true);
-
-	// Displays the Interfaces available to capture packets.
-	// Records the user choice
-	captureEngine.SelectInterface();
-
+	
 	// Test the map
-  //	while (true)
-  //	{
-  //		std::string temp;
-  //		std::cout << "enter port alias\n";
-  //		std::cin >> temp;
-  //		std::cout << "is it an alias? " << isaliasport(temp)<<"\n";//		std::cout << captureengine.myfilter->getlocalportfrommap(temp)<<"\n";
-  //	}
+	//	while (true)
+	//	{
+	//		std::string temp;
+	//		std::cout << "enter port alias\n";
+	//		std::cin >> temp;
+	//		std::cout << "is it an alias? " << isaliasport(temp)<<"\n";//		std::cout << captureengine.myfilter->getlocalportfrommap(temp)<<"\n";
+	//	}
 
 	// Enter Filter
 	std::cout << "Do you want to apply a filter (yes/no)? \n";
@@ -119,7 +95,7 @@ int main(int argc, char **argv)
 	captureEngine.SelectInterface();
 
 	// Set the Connection Timeout in Seconds
-	captureEngine.SetTimeout(5);
+	captureEngine.SetTimeout(10);
 
 	// Set the Console output mode
 	captureEngine.SetConsoleMode(ConnectionsMade);
@@ -132,35 +108,12 @@ int main(int argc, char **argv)
 	// Using &captureEngine as the object reference, start the CaptureEngine::Capture method.
 	// The &CaptureEngine::Capture is a reference to the class method.
 	// This threading example does not pass arguments.
-	programThreads[threadCount++] = std::thread(&CaptureEngine::Capture, &captureEngine);
+	threadMan.Threads[threadMan.ThreadCount++] = std::thread(&CaptureEngine::Capture, &captureEngine);
 
-	// Testing threading with another local method.
-	// programThreads[threadCount++] = std::thread(ThreadPrint);
-
-	JoinThreads();
+	graphics.StartGLWindow();
 
 }
 	
-// Example of how to use the Packet data to generate messages
-void ThreadPrint() 
-{
-	int secondsPassed = 1;
-	int packetsCaptured = captureEngine.GetPacketList().size();
-	int packetsPerSecond = 0;
-	while(continueSecondUpdate)
-	{
-		// Lock the Mutex, meaning that other threads will give this thread exclusive execution while locked.
-		mux.lock();
-		packetsCaptured = captureEngine.GetPacketList().size(); 
-		packetsPerSecond = ((packetsCaptured / secondsPassed) > 0) ? (packetsCaptured / secondsPassed) : 0;
-		printf("\n\r %i Seconds have passed since we started capturing, and %i packets were captured at %d packets/sec. \n\n", secondsPassed, packetsCaptured, packetsPerSecond);
-		// Unlock mutex, now all threads can operate besides each other.
-		mux.unlock();
-		Sleep(1000);
-		secondsPassed++;
-	}
-
-}
 
 bool isAliasPort(std::string port)
 {
@@ -173,58 +126,4 @@ bool isAliasPort(std::string port)
 
 	return isAlias;
 
-}
-
-/*
-	Sourced from: https://docs.microsoft.com/en-us/windows/console/registering-a-control-handler-function
-	Handles when CTRL+C and other events are pressed during execution.
-*/
-BOOL WINAPI CtrlHandler(DWORD fdwCtrlType)
-{
-	switch (fdwCtrlType)
-	{
-		// Handle the CTRL-C signal. 
-	case CTRL_C_EVENT:
-		// Lock this thread
-		mux.lock();	
-		// Stop the Capturing Output
-		captureEngine.SetContinueCapturing(false);
-		// Stop the Update message
-		continueSecondUpdate = false;
-		// Detach all threads so they can safely be deleted.
-		for (int i = 0; i < threadCount; i++)
-		{
-			// Kill the other threads
-			programThreads[i].detach();
-		}
-		std::cout << " \n\n CTRL+C pressed, exiting... \n\n\n";
-		Sleep(1500);
-		// Unlock and exit
-		mux.unlock();		
-		exit(0);
-
-	case CTRL_CLOSE_EVENT:
-		Beep(600, 200);
-		printf("Ctrl-Close event\n\n");
-		return TRUE;
-
-		// Pass other signals to the next handler. 
-	case CTRL_BREAK_EVENT:
-		Beep(900, 200);
-		printf("Ctrl-Break event\n\n");
-		return TRUE;
-
-	case CTRL_LOGOFF_EVENT:
-		Beep(1000, 200);
-		printf("Ctrl-Logoff event\n\n");
-		return FALSE;
-
-	case CTRL_SHUTDOWN_EVENT:
-		Beep(750, 500);
-		printf("Ctrl-Shutdown event\n\n");
-		return FALSE;
-
-	default:
-		return FALSE;
-	}
 }

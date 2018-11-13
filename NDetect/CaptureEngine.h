@@ -3,6 +3,7 @@
 #include "pch.h"
 #include "DTOs.h"
 #include "Filter.h"
+#include "ThreadManager.h"
 #include <string>
 #include <iostream>
 
@@ -94,24 +95,24 @@ class CaptureEngine
 	// Captures the interface name during SelectInterface()
 	std::string interfaceName = "";
 
+	// Host IP Address
+	std::string HostIP;
+	int hostAddrHops = 0;
+
 	// Slows the flow of packets on the console during DisplayPacketData()
 	// packets stay on screen longer for longer packets of data.
 	double sleepTime = 0.2;
 
-	// Thread holder
-	std::thread threadTimeout;
-
-	// Mutual Exclusion
-	// Used to give one thread exclusive operation, which prevent code interleaving
-	std::mutex mux;
+	// Manages running threads and holds between them.
+	ThreadManager * threadMan;
 
 	// Timeout value in seconds
 	int timeoutSeconds = 5;
 
-
 	// List of Packets captured
 	std::list<Packet> capturedPackets;
 	int packetLimit = 20000;
+	int packetCount = 0;
 
 	// Connection map
 	/*
@@ -129,7 +130,7 @@ class CaptureEngine
 
 
 public:
-	CaptureEngine();
+	CaptureEngine(ThreadManager * tm);
 	~CaptureEngine();
 
 	// Displays the interfaces to choose from.
@@ -167,6 +168,13 @@ public:
 	// Shows the data inside the packet
 	void DisplayPacketData();
 
+	// Simple Getters
+	std::string GetHostIP();
+
+	int GetPacketCount();
+
+	ConsoleMode GetConsoleMode();
+
 	// Getter for Packet List
 	std::list<Packet> GetPacketList();
 
@@ -174,7 +182,7 @@ public:
 	std::list<Packet> GetNLastPackets(int N);
 
 	// Get a copy of all the current connections in a list
-	std::list<Connection> GetConnections();
+	std::list <Connection> GetConnections();
 
 	// Constructs the key string for accessing a Connection in connections
 	std::string ConstructKeyString(Packet pkt);

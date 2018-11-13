@@ -22,14 +22,14 @@ enum ConsoleMode
 };
 
 
-// This enum refers to the programThreads array back in NDetect.cpp
-// Enum values start at 0
-// To create new threads, create a new entry in this enum
-// Then, you can refence your thread like so:
-// Ex. programThreads[NewThreadEnum].join()
-enum ThreadID {
-	CaptureLoop, ThreadedPrint
+// Used for Thread array index
+// Example Thread Creation:
+// threadMan->Threads[ThreadNames::Timeout] = std::thread(&CaptureEngine::CheckTimeout, this);
+enum ThreadNames
+{
+	CaptureLoop, Timeout, UpdateConnections
 };
+
 
 /* 4 bytes IP address */
 class ip_address {
@@ -127,6 +127,8 @@ class Connection : public Packet {
 	// Used for checking how long ago this connection was used
 	struct tm lastPacketTime;
 
+	bool isLocalHost = false;
+
 public:
 
 	Connection();
@@ -144,4 +146,61 @@ public:
 	int GetTotalBytes();
 	int GetPacketCount();
 	struct tm GetLastPacketTime();
+	bool isLocalHostConnection();
 };
+
+
+// VisualConnection
+// Encapsulates a connection, and gives it properties usable in the GraphicsEngine
+
+class VisualConnection {
+
+public:
+	// IP Address or perhaps hostname?
+	std::string Name;
+
+	// Set when this Connection is from the local host
+	bool isLocalHost = false;
+
+	// Connection Object for TCP/IP Info.
+	Connection conn;
+
+	// Number of packets that match this connection
+	int packetCount = 0;
+
+	// Combined length of packets for this connection
+	int totalBytes = 0;
+
+	// Object colors
+	float Red = 0.0, Green = 0.85, Blue = 0.15;
+
+	// Object Radius
+	float radius = 0.25;
+	
+	// Translation
+	float tX = 0.0, tY = 0.0, tZ = 0.0;
+
+	// Rotation
+	float rA = 0.0, rX = 0.0, rY = 0.0, rZ = 0.0;
+
+	// Scale
+	float sX = 1.0f, sY = 1.0f, sZ = 1.0f;
+
+	// Destination Connections
+	VisualConnection * DestConns[10];
+	int DestCount = 0;
+
+	VisualConnection();
+	VisualConnection(std::string name);
+	VisualConnection(std::string name, Connection con);
+
+	// VisualConnection& operator=(const Connection con);
+
+	void SetTranslation(float x, float y, float z);
+	void SetRotation(float angle, float x, float y, float z);
+	void SetScale(float x, float y, float z);
+	void SetColor(float r, float g, float b);
+	void SetDestination(VisualConnection * vCon);
+
+};
+
