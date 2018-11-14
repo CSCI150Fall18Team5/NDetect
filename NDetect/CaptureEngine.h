@@ -37,13 +37,13 @@ public:
 	// Taps into the capture engine
 	void Capture(int mode);
 	// Displays the packets being received from the capture stream.
-	void DisplayPacketData();
+	void DisplayPacketData(int input);
 	// Prints the interfaces
 	void ifprint(pcap_if_t *d, int i);
 	char * iptos(u_long in);
 	// User chooses which mode to view the packets 
 	void Display_Mode();
 	//Live stream will get the last 40-50 packets and display them 
-	//void LiveStream();
+	void Menu();
 };
 

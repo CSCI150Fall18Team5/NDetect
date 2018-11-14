@@ -15,6 +15,39 @@ void CaptureEngine::Init()
 
 
 }
+void CaptureEngine::Menu() {
+	while (TRUE) {
+		printf("Please choose a menu option: (1) Select Packet Limit , (2) Connection timeout (sec), (3) Network Interface , (4) Console Output, (5) Start Capture");
+
+		scanf_s("%d", &m);
+		int menu = (int)m;
+		if (menu < 1 || menu > i) {
+			printf("Input is out of range");
+			return;
+		}
+		switch (menu) {
+		case 1:
+			scanf_s("%d", &limit);
+			int pac_limit = (int)limit;
+			Capture();
+		case 2:
+			scanf_s("%d", &time);
+			int conn_time = (int)time;
+			Capture();
+		case 3:
+			SelectInterface();
+		case 4:
+			Display_Mode();
+		case 5:
+			Capture();
+		default:
+			printf("Input is invalie, please choose again");
+			break;
+		}
+	}
+
+}
+
 void CaptureEngine::Display_Mode() {
 	printf("Choose type of Mode: (1)Live Stream, (2) Statistic, (3) Both Stats N Live, (4)Connections");
 	scanf_s("%d", &input);
@@ -22,22 +55,9 @@ void CaptureEngine::Display_Mode() {
 	if (temp < 1 || temp > i) {
 		printf("Input is out of range");
 		return;
-	}
-	switch (temp) {
-	case 1:
 		DisplayPacketData(input);
-		break;
-	case 2:
-		DisplayPacketData(input);
-	case 3:
-		DisplayPacketData(input);
-	case 4:
-		DisplayPacketData(input);
-	default:
-		printf("Options for Display mode was not in range. Pick 1-4");
-		return;
-	}
 
+	}
 }
 void CaptureEngine::SelectInterface()
 {
@@ -48,7 +68,7 @@ void CaptureEngine::SelectInterface()
 		return;
 	}
 	//Display_Mode();
-	// Print the list 
+	// Print the list
 	int i = 0;
 	for(d = alldevs; d; d = d->next)
 	{
@@ -101,9 +121,22 @@ void CaptureEngine::Capture(int mode = 0)
 // Loop function that uses packets from the PCAP interface to display packet data.
 void CaptureEngine::DisplayPacketData(int input)
 {
-
+	int range = 0;
 	//this->Display_Mode();
+	switch (input)
+	{
+	case 1:
+	 range = 50;
+	case 2:
+		//Statistic_Display()
+	case 3:
+		//Combined_Display()
+	case 4:
+		//string Connection 
+	default: printf("Input is invalid");
 
+		break;
+	}
 	int defaultpacket_size = 50;
 	for (int i = 0; i <= defaultpacket_size; i++) {
 		// Open the device 
