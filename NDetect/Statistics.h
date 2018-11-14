@@ -5,5 +5,7 @@ public:
 	Statistics();
 	~Statistics();
 	int retNumOfPackets();
+	long int totalLengthOfPackets();
+	
 };
 
