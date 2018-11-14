@@ -374,7 +374,16 @@ std::list <Connection> CaptureEngine::GetConnections()
 		// Lock the thread so we can safely access the List.
 		std::unique_lock<std::mutex> uniqueLock(threadMan->muxConnections);
 		for (auto& con : connections) {
-			connCopy.push_back(con.second);
+
+			
+			if (myFilter->GetLocalTargetIP() == con.second.sourceIpString.c_str() || myFilter->GetDestTargetIP() == con.second.destIpString.c_str() || myFilter->GetLocalTargetPort() == con.second.sourcePortString.c_str() || myFilter->GetDestTargetPort() == con.second.destPortString.c_str()) {
+				connCopy.push_back(con.second);
+			}
+			if (noFilter)
+				connCopy.push_back(con.second);
+
+
+			
 		}
 		// Unlock, we made our copies
 		uniqueLock.unlock();
