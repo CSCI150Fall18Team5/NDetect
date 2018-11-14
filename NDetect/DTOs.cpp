@@ -197,20 +197,20 @@ VisualConnection::VisualConnection()
 
 }
 
-VisualConnection::VisualConnection(std::string name)
+VisualConnection::VisualConnection( Connection con)
 {
-	Name = name;
-}
+	// Update Internal TCP/IP Vars
+	// Update the Source
+	SourceIP = con.GetSourceIP();
+	SourcePort = con.GetSourcePort();
 
-VisualConnection::VisualConnection(std::string name, Connection con)
-{
-	// Setup private vars
-	Name = name;
-	conn = con;
+	// Add destination IP to the list
+	DestIPs.push_back(con.GetDestIP());
+	DestPorts.push_back(con.GetDestPort());
 
-	this->packetCount = conn.GetPacketCount();
-	this->totalBytes = conn.GetTotalBytes();
-	this->isLocalHost = conn.isLocalHostConnection();
+	this->packetCount = con.GetPacketCount();
+	this->totalBytes = con.GetTotalBytes();
+	this->isLocalHost = con.isLocalHostConnection();
 }
 
 /*
@@ -247,10 +247,4 @@ void VisualConnection::SetColor(float r, float g, float b)
 	Red = r;
 	Green = g;
 	Blue = b;
-}
-
-void VisualConnection::SetDestination(VisualConnection * vCon)
-{
-	// Set another destination 
-	DestConns[DestCount++] = vCon;
 }

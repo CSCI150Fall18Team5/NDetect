@@ -52,7 +52,7 @@ void GraphicsEngine::Display()
 	glClearColor(bgRed, bgGreen, bgBlue, 1.0);
 
 	// Update the rotation of all hosts
-	RotateAngle = (RotateAngle >= 360) ? 0 : RotateAngle + 0.0025;
+	// RotateAngle = (RotateAngle >= 360) ? 0 : RotateAngle + 0.0025;
 
 	DrawCircle(0.0, 0.0, circleRadius, 1080);
 
@@ -151,7 +151,7 @@ void GraphicsEngine::DrawHosts()
 	std::unique_lock<std::mutex> uniqueLock(threadMan->muxVisualConnections);
 	for (auto & vc : visualConnections) {
 		// Draw the host on screen.
-		DrawHost(vc);
+		DrawHost(vc.second);
 	}
 	uniqueLock.unlock();	
 }
@@ -188,23 +188,24 @@ void GraphicsEngine::DrawHostLines()
 	std::unique_lock<std::mutex> uniqueLock(threadMan->muxVisualConnections);
 	for (auto & vc : visualConnections) {
 		// Draw the host on screen.
-		DrawHostLine(vc);
+		DrawHostLine(vc.second);
 	}
 	uniqueLock.unlock();
 }
 
 void GraphicsEngine::DrawHostLine(VisualConnection vCon)
 {
-	if (vCon.DestCount > 0 && vCon.DestCount <= 20) {
-		glLineWidth(vCon.conn.GetPacketCount() / 4);
-		glColor3f(0.8, 1.0, 0.8);	
-		for (int i = 0; i < vCon.DestCount; i++) {
-			glBegin(GL_LINES);
-			glVertex3f(vCon.tX, vCon.tY, 0.0);
-			glVertex3f(vCon.DestConns[i]->tX, vCon.DestConns[i]->tY, 0.0);
-			glEnd();
-		}
+	/*
+	glLineWidth(vCon.packetCount / 4);
+	glColor3f(0.8, 1.0, 0.8);	
+	for (auto & dC: vCon.DestIPs) {
+		glBegin(GL_LINES);
+		glVertex3f(vCon.tX, vCon.tY, 0.0);
+		glVertex3f(dC.tX, dC.tY, 0.0);
+		glEnd();
 	}
+	*/
+	
 }
 
 void GraphicsEngine::Resize(int width, int height)
@@ -359,17 +360,19 @@ void GraphicsEngine::ProcessConnections()
 	int hCount = 0;
 
 	// Build upon a temp list
-	std::list <VisualConnection> tempVConnections;
-
+	std::map <std::string, VisualConnection> tempVConnections;
+	
+	/*
+		Creating the Local Host connection
+	
 	// Get the host IP for comparing
 	std::string hostIP = captureEngine->GetHostIP();
-
 	// Create a Host Node for the Host Computer
-	VisualConnection hostVC(hostIP);
-	
+	VisualConnection hostVC();
 	hostVC.SetTranslation(0.0,0.0,0.0);
-
+	// Add to the list
 	tempVConnections.push_back(hostVC);
+	*/
 
 	// Lock the thread so we can safely access the List.
 	std::unique_lock<std::mutex> uniqueLock(threadMan->muxVisualConnections);
@@ -384,10 +387,10 @@ void GraphicsEngine::ProcessConnections()
 		// Setup the hosts
 		
 		// Create Visual Connection based on the source connection
-		VisualConnection vCon(c.GetSourceIP(), c);
+		VisualConnection vCon(c);
 		
 		// Get Packet Count
-		int pckCount = vCon.conn.GetPacketCount();
+		int pckCount = vCon.packetCount;
 
 		// Get our Theta 
 		float theta = 2.0f * 3.1415926f * float(hCount) / float(connectionCount);
@@ -405,12 +408,12 @@ void GraphicsEngine::ProcessConnections()
 				Scale = 1.0 + (pckCount / (pckTotal / connectionCount));
 			}
 		}
-
 		vCon.SetScale(Scale, Scale, Scale);
 
 		// Adjust Colors
-		vCon.Red += vCon.conn.GetTotalBytes() / 512;
-		vCon.Blue -= vCon.conn.GetTotalBytes() / 512;
+		vCon.Red += vCon.totalBytes / 512;
+		vCon.Blue -= vCon.totalBytes / 512;
+		vCon.Green -= vCon.totalBytes / 512;
 
 		// Set the rotation
 		vCon.rA = RotateAngle;
@@ -419,7 +422,7 @@ void GraphicsEngine::ProcessConnections()
 		vCon.rZ = RotateZ;
 
 		// Add this connection to our map
-		tempVConnections.push_back(vCon);
+		tempVConnections[vCon.SourceIP] = vCon;
 
 		// Increment Host count
 		hCount++;
@@ -429,17 +432,11 @@ void GraphicsEngine::ProcessConnections()
 	visualConnections = tempVConnections;
 
 	// Create links between the connections
-	for (auto & sourceConns : visualConnections) {
+	for (auto & sources : visualConnections) {
 
-		// Create a link for each VisualConnection to it's Destination
-		std::string destIP = sourceConns.conn.GetDestIP();
 
-		// Check all visual connections to see if one matches
-		for (auto & destConns : visualConnections) {
-			if (destConns.Name == destIP) { 
-				sourceConns.SetDestination(&destConns); 
-			}
-		}
+
+
 	}
 
 	// Unlock now that we're done

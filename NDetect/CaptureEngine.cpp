@@ -111,7 +111,7 @@ void CaptureEngine::CaptureLoop()
 	threadMan->Threads[threadMan->ThreadCount++] = std::thread(&CaptureEngine::CheckTimeout, this);
 	
 	// Read the packets 
-	while ((res = pcap_next_ex(pCapObj, &header, &pkt_data)) >= 0 && continueCapturing)
+	while ((res = pcap_next_ex(pCapObj, &header, &pkt_data)) >= 0)
 	{
 		if (res == 0)
 			/* Timeout elapsed */
@@ -427,10 +427,6 @@ bool CaptureEngine::ConnectionExists(Packet pkt)
 	return false;
 }
 
-void CaptureEngine::SetContinueCapturing(bool val)
-{
-	this->continueCapturing = val;
-}
 
 void CaptureEngine::SetPacketLimit(int max)
 {
