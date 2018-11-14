@@ -1,8 +1,11 @@
 {
   "ExpandedNodes": [
     "",
+    "\\Debug",
+    "\\Include",
+    "\\Include\\GL",
     "\\NDetect"
   ],
-  "SelectedNode": "\\NDetect\\testWinpCap.cpp",
+  "SelectedNode": "\\NDetect\\CaptureEngine.h",
   "PreviewInSolutionExplorer": false
 }
