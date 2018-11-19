@@ -159,11 +159,8 @@ public:
 	// Static IP Address and Port
 	std::string SourceIP;
 	std::string SourcePort;
-	
-	// Destinations and Ports
-	std::list <std::string> DestIPs;
-	// Create a list of Ports
-	std::list <std::string> DestPorts;
+
+	std::list<std::string> DestIPs;
 
 	// Set when this Connection is from the local host
 	bool isLocalHost = false;
@@ -185,7 +182,9 @@ public:
 	
 	// Contructors
 	VisualConnection();
+	VisualConnection(std::string ipAddr, std::string port);
 	VisualConnection(Connection con);
+	~VisualConnection();
 
 	// VisualConnection& operator=(const Connection con);
 

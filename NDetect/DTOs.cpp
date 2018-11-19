@@ -197,20 +197,27 @@ VisualConnection::VisualConnection()
 
 }
 
-VisualConnection::VisualConnection( Connection con)
+VisualConnection::VisualConnection(std::string ipAddr, std::string port)
+{
+	SourceIP = ipAddr;
+	SourcePort = port;
+
+}
+
+VisualConnection::VisualConnection(Connection con)
 {
 	// Update Internal TCP/IP Vars
 	// Update the Source
 	SourceIP = con.GetSourceIP();
 	SourcePort = con.GetSourcePort();
 
-	// Add destination IP to the list
-	DestIPs.push_back(con.GetDestIP());
-	DestPorts.push_back(con.GetDestPort());
-
 	this->packetCount = con.GetPacketCount();
 	this->totalBytes = con.GetTotalBytes();
 	this->isLocalHost = con.isLocalHostConnection();
+}
+
+VisualConnection::~VisualConnection()
+{
 }
 
 /*

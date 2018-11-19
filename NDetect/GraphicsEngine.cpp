@@ -187,24 +187,35 @@ void GraphicsEngine::DrawHostLines()
 	// Lock the thread so we can safely access the List.
 	std::unique_lock<std::mutex> uniqueLock(threadMan->muxVisualConnections);
 	for (auto & vc : visualConnections) {
-		// Draw the host on screen.
-		DrawHostLine(vc.second);
+		
+		// Test each destination IP at the source
+		for (auto & tDest : vc.second.DestIPs) {
+
+			// Found the IP in our visual connections
+			if (visualConnections.find(tDest) != visualConnections.end()) {
+
+				// Draw the host on screen.
+				DrawHostLine(vc.second, visualConnections[tDest]);
+
+			}
+		}
+		
 	}
 	uniqueLock.unlock();
 }
 
-void GraphicsEngine::DrawHostLine(VisualConnection vCon)
+void GraphicsEngine::DrawHostLine(VisualConnection from, VisualConnection to)
 {
-	/*
-	glLineWidth(vCon.packetCount / 4);
+	
+	glLineWidth(from.packetCount / 4);
 	glColor3f(0.8, 1.0, 0.8);	
-	for (auto & dC: vCon.DestIPs) {
+	for (auto & dC: visualConnections) {
+
 		glBegin(GL_LINES);
-		glVertex3f(vCon.tX, vCon.tY, 0.0);
-		glVertex3f(dC.tX, dC.tY, 0.0);
+		glVertex3f(from.tX, from.tY, 0.0);
+		glVertex3f(to.tX, to.tY, 0.0);
 		glEnd();
 	}
-	*/
 	
 }
 
@@ -255,6 +266,7 @@ void GraphicsEngine::KeyDown(unsigned char key, int x, int y)
 
 	case 27:
 	case 'q':
+		threadMan->EndThreads();
 		exit(0);
 		break;
 
@@ -350,7 +362,7 @@ void GraphicsEngine::UpdateConnections()
 		// Transform those connection into Visual Connections
 		ProcessConnections();
 		// Wait before trying again
-		Sleep(250);
+		Sleep(50);
 	}
 }
 
@@ -362,17 +374,8 @@ void GraphicsEngine::ProcessConnections()
 	// Build upon a temp list
 	std::map <std::string, VisualConnection> tempVConnections;
 	
-	/*
-		Creating the Local Host connection
-	
 	// Get the host IP for comparing
 	std::string hostIP = captureEngine->GetHostIP();
-	// Create a Host Node for the Host Computer
-	VisualConnection hostVC();
-	hostVC.SetTranslation(0.0,0.0,0.0);
-	// Add to the list
-	tempVConnections.push_back(hostVC);
-	*/
 
 	// Lock the thread so we can safely access the List.
 	std::unique_lock<std::mutex> uniqueLock(threadMan->muxVisualConnections);
@@ -381,22 +384,53 @@ void GraphicsEngine::ProcessConnections()
 	int pckTotal = captureEngine->GetPacketCount();
 	int connectionCount = connectionList.size();
 
+	// First create temporary Visual Connections from existing connections
 	for (auto c : connectionList)
 	{
-		//////////////////
-		// Setup the hosts
-		
-		// Create Visual Connection based on the source connection
-		VisualConnection vCon(c);
-		
-		// Get Packet Count
-		int pckCount = vCon.packetCount;
+		// Temp strings
+		std::string sourceIP = c.GetSourceIP();
+		std::string destIP = c.GetDestIP();
 
+		// No visual connection made for this connection, add it.
+		if (tempVConnections.find(sourceIP) == tempVConnections.end()) {
+			// Add this Visual Connection
+			tempVConnections[sourceIP] = VisualConnection(c);
+			// Add the Destination 
+			tempVConnections[sourceIP].DestIPs.push_back(destIP);
+			// Increment host count for drawing later, but only if not the host.
+			hCount = (sourceIP == hostIP) ? hCount : hCount + 1;
+		}
+		// Check for the destination IP in the visual connections
+		else if (tempVConnections.find(destIP) == tempVConnections.end()) {
+			// Add this Visual Connection
+			tempVConnections[destIP] = VisualConnection(destIP, c.GetDestPort());
+			// Add the Destination 
+			tempVConnections[destIP].DestIPs.push_back(sourceIP);
+			// Increment host count for drawing later, but only if not the host.
+			hCount = (sourceIP == hostIP) ? hCount : hCount + 1;
+		}
+	}
+
+	// Used to calculate each connections position on the graph.
+	int counter = 0;
+
+	for (auto & tVC : tempVConnections)
+	{
 		// Get our Theta 
-		float theta = 2.0f * 3.1415926f * float(hCount) / float(connectionCount);
+		float theta = 2.0f * 3.1415926f * float(counter++) / float(hCount);
 		
-		// Set the X,Y, and Z values of the center point
-		vCon.SetTranslation(circleRadius * cosf(theta), circleRadius * sinf(theta), 0.0);
+		// If this is the localhost, place the dot in the center.
+		if (tVC.second.SourceIP == hostIP) {
+			// Set the X,Y, and Z values of the center point
+			tVC.second.SetTranslation(0.0, 0.0, 0.0);
+		}
+		else {
+			// Set the X,Y, and Z values of the center point
+			tVC.second.SetTranslation(circleRadius * cosf(theta), circleRadius * sinf(theta), 0.0);
+		}
+
+		// Get Packet Count
+		int pckCount = tVC.second.packetCount;
 
 		// Set the scaling
 		float Scale = 1.0;
@@ -408,36 +442,22 @@ void GraphicsEngine::ProcessConnections()
 				Scale = 1.0 + (pckCount / (pckTotal / connectionCount));
 			}
 		}
-		vCon.SetScale(Scale, Scale, Scale);
+		tVC.second.SetScale(Scale, Scale, Scale);
 
 		// Adjust Colors
-		vCon.Red += vCon.totalBytes / 512;
-		vCon.Blue -= vCon.totalBytes / 512;
-		vCon.Green -= vCon.totalBytes / 512;
+		tVC.second.Red += tVC.second.totalBytes / 256;
+		tVC.second.Blue -= tVC.second.totalBytes / 256;
+		tVC.second.Green -= tVC.second.totalBytes / 256;
 
 		// Set the rotation
-		vCon.rA = RotateAngle;
-		vCon.rX = RotateX;
-		vCon.rY = RotateY;
-		vCon.rZ = RotateZ;
-
-		// Add this connection to our map
-		tempVConnections[vCon.SourceIP] = vCon;
-
-		// Increment Host count
-		hCount++;
+		tVC.second.rA = RotateAngle;
+		tVC.second.rX = RotateX;
+		tVC.second.rY = RotateY;
+		tVC.second.rZ = RotateZ;
 	}
 
 	// Overwrite the connections we have
 	visualConnections = tempVConnections;
-
-	// Create links between the connections
-	for (auto & sources : visualConnections) {
-
-
-
-
-	}
 
 	// Unlock now that we're done
 	uniqueLock.unlock();

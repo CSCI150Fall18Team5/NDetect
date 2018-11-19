@@ -85,7 +85,7 @@ void CaptureEngine::Capture()
 	// Open the device 
 	if ((pCapObj = pcap_open(interfaceName.c_str(),
 		100 /*snaplen - integer which defines the maximum number of bytes to be captured by pcap*/,
-		captureMode /*flags*/,
+		0 /*flags*/,
 		20 /*read timeout*/,
 		NULL /* remote authentication */,
 		errbuf)
@@ -260,11 +260,14 @@ void CaptureEngine::Display()
 			if(noFilter)
 				printf(" %i \t| %i \t\t| %s \t| %s:%s \t| %s:%s \n", con.GetTotalBytes(), con.GetPacketCount(), pktTime, con.sourceIpString.c_str(), con.sourcePortString.c_str(), con.destIpString.c_str(), con.destPortString.c_str());
 		}
+
+		// Wait to update in this mode.
+		Sleep(333);
+
 	}
 
 	lockConns.unlock();
 	lockPackets.unlock();
-	Sleep(100);
 }
 
 

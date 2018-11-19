@@ -84,7 +84,7 @@ public:
 	void DrawHosts();
 	void DrawHost(VisualConnection vCon);
 	void DrawHostLines();
-	void DrawHostLine(VisualConnection vCon);
+	void DrawHostLine(VisualConnection from, VisualConnection to);
 
 	// Called when the window resizes.
 	void Resize(int width, int height);
