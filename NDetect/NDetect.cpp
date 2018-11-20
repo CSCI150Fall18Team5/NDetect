@@ -71,12 +71,12 @@ int main(int argc, char **argv)
 				break;
 			case 3: // set Local Port
 				if(isAliasPort(choice))
-					choice = captureEngine.myFilter->GetLocalPortfromMap(choice);
+				choice = captureEngine.myFilter->GetLocalPortfromMap(choice);
 				captureEngine.myFilter->SetLocalTargetPort(choice);
 				break;
 			case 4: // Set Destination Port
 				if(isAliasPort(choice))
-					choice = captureEngine.myFilter->GetLocalPortfromMap(choice);
+				choice = captureEngine.myFilter->GetLocalPortfromMap(choice);
 				captureEngine.myFilter->SetDestTargetPort(choice);
 				break;
 		default:

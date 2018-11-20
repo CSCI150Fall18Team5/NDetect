@@ -226,9 +226,9 @@ void CaptureEngine::Display()
 		// Display the Connection Timeout
 		printf(" Connection Timeout: %is \n\r", timeoutSeconds);
 
-		printf("-----------------------------------------------------------------------------------------\n\r");
-		printf(" Bytes \t| Packets\t|  Time \t| Source_IP:Port \t| Destination_IP:Port \n\r");
-		printf("=========================================================================================\n\r");
+		printf("---------------------------------------------------------------------------------------------------\n\r");
+		printf(" Bytes \t| Packets\t|  Time \t| Source_IP:Port \t| Destination_IP:Port \t| Protocol \n\r");
+		printf("===================================================================================================\n\r");
 		
 		// Only show the 30 newest Connections		
 		const int connectionLimit = 30;
@@ -258,7 +258,7 @@ void CaptureEngine::Display()
 				// std::cout << "|> {" << i << "} " << con.sourceIpString << con.sourcePortString << con.destIpString << con.destPortString << "\n";
 			}
 			if(noFilter)
-				printf(" %i \t| %i \t\t| %s \t| %s:%s \t| %s:%s \n", con.GetTotalBytes(), con.GetPacketCount(), pktTime, con.sourceIpString.c_str(), con.sourcePortString.c_str(), con.destIpString.c_str(), con.destPortString.c_str());
+				printf(" %i \t| %i \t\t| %s \t| %s:%s \t| %s:%s \t| %s \n", con.GetTotalBytes(), con.GetPacketCount(), pktTime, con.sourceIpString.c_str(), con.sourcePortString.c_str(), con.destIpString.c_str(), con.destPortString.c_str(), "Sample");
 		}
 	}
 
