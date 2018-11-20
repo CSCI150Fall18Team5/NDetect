@@ -43,7 +43,7 @@ class GraphicsEngine
 	float bgRed = 0.01, bgGreen = 0.02, bgBlue = 0.05;
 
 	// Circle Vars
-	float circRed = 0.0, circGreen = 1.5, circBlue = 8.5;
+	float circRed = 0.2, circGreen = 0.2, circBlue = 0.3;
 
 	// Camera Position and Direction
 	float camX = 0.0, camY = -15.0, camZ = 5.0;

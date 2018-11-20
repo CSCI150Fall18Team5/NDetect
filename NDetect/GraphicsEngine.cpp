@@ -54,14 +54,16 @@ void GraphicsEngine::Display()
 	// Update the rotation of all hosts
 	// RotateAngle = (RotateAngle >= 360) ? 0 : RotateAngle + 0.0025;
 
-	DrawCircle(0.0, 0.0, circleRadius, 1080);
-
+	
 	// Place the hosts around
 	DrawHosts();
 
 	// Draw lines between hosts.
 	DrawHostLines();
-		
+	
+	DrawCircle(0.0, 0.0, circleRadius, 1080);
+
+
 	/*
 		This is a Template for creating objects in 3D space.
 		First you must push a new Matrix into the framework,
@@ -362,23 +364,17 @@ void GraphicsEngine::UpdateConnections()
 		// Transform those connection into Visual Connections
 		ProcessConnections();
 		// Wait before trying again
-		Sleep(50);
+		Sleep(100);
 	}
 }
 
 void GraphicsEngine::ProcessConnections()
 {
-	// Host Count
-	int hCount = 0;
-
 	// Build upon a temp list
 	std::map <std::string, VisualConnection> tempVConnections;
 	
 	// Get the host IP for comparing
 	std::string hostIP = captureEngine->GetHostIP();
-
-	// Lock the thread so we can safely access the List.
-	std::unique_lock<std::mutex> uniqueLock(threadMan->muxVisualConnections);
 
 	// Get Counts
 	int pckTotal = captureEngine->GetPacketCount();
@@ -391,28 +387,33 @@ void GraphicsEngine::ProcessConnections()
 		std::string sourceIP = c.GetSourceIP();
 		std::string destIP = c.GetDestIP();
 
-		// No visual connection made for this connection, add it.
+		// Add Unique IP from Connection Source, with Destination
 		if (tempVConnections.find(sourceIP) == tempVConnections.end()) {
 			// Add this Visual Connection
 			tempVConnections[sourceIP] = VisualConnection(c);
 			// Add the Destination 
 			tempVConnections[sourceIP].DestIPs.push_back(destIP);
-			// Increment host count for drawing later, but only if not the host.
-			hCount = (sourceIP == hostIP) ? hCount : hCount + 1;
 		}
-		// Check for the destination IP in the visual connections
-		else if (tempVConnections.find(destIP) == tempVConnections.end()) {
+		// If Destination of this connection is missing, add THAT IP address as well.
+		if (tempVConnections.find(destIP) == tempVConnections.end()) {
 			// Add this Visual Connection
 			tempVConnections[destIP] = VisualConnection(destIP, c.GetDestPort());
 			// Add the Destination 
 			tempVConnections[destIP].DestIPs.push_back(sourceIP);
-			// Increment host count for drawing later, but only if not the host.
-			hCount = (sourceIP == hostIP) ? hCount : hCount + 1;
+		}
+
+		// Subtract one Host node if 
+		if (sourceIP == hostIP) {
+			
+
 		}
 	}
 
 	// Used to calculate each connections position on the graph.
 	int counter = 0;
+	bool localHostPlaced = false;
+	// Host Count
+	int hCount = tempVConnections.size() - 1;
 
 	for (auto & tVC : tempVConnections)
 	{
@@ -420,9 +421,10 @@ void GraphicsEngine::ProcessConnections()
 		float theta = 2.0f * 3.1415926f * float(counter++) / float(hCount);
 		
 		// If this is the localhost, place the dot in the center.
-		if (tVC.second.SourceIP == hostIP) {
+		if (!localHostPlaced && tVC.second.SourceIP == hostIP) {
 			// Set the X,Y, and Z values of the center point
 			tVC.second.SetTranslation(0.0, 0.0, 0.0);
+			localHostPlaced = true;
 		}
 		else {
 			// Set the X,Y, and Z values of the center point
@@ -455,6 +457,8 @@ void GraphicsEngine::ProcessConnections()
 		tVC.second.rY = RotateY;
 		tVC.second.rZ = RotateZ;
 	}
+	// Lock the thread so we can safely access the List.
+	std::unique_lock<std::mutex> uniqueLock(threadMan->muxVisualConnections);
 
 	// Overwrite the connections we have
 	visualConnections = tempVConnections;
