@@ -65,6 +65,7 @@ class CaptureEngine
 	const u_char *pkt_data;
 	// Used for Filtering
 	u_int netmask;
+	struct bpf_program fcode;
 
 	// Used in Decoding the packet
 	struct tm ltime;

@@ -82,6 +82,7 @@ void CaptureEngine::SelectInterface()
 
 void CaptureEngine::Capture()
 {	
+
 	// Open the device 
 	if ((pCapObj = pcap_open(interfaceName.c_str(),
 		100 /*snaplen - integer which defines the maximum number of bytes to be captured by pcap*/,
@@ -93,6 +94,30 @@ void CaptureEngine::Capture()
 	{
 		printf("\nError opening adapter\n");
 		return;
+	}
+
+	// Set the Netmask
+	if (d->addresses != NULL)
+		/* Retrieve the mask of the first address of the interface */
+		netmask = ((struct sockaddr_in *)(d->addresses->netmask))->sin_addr.S_un.S_addr;
+	else
+		/* If the interface is without addresses we suppose to be in a C class network */
+		netmask = 0xffffff;
+
+	// compile the filter
+	if (pcap_compile(pCapObj, &fcode, "tcp or udp", 1, netmask) < 0)
+	{
+		fprintf(stderr, "\nUnable to compile the packet filter. Check the syntax.\n");
+		/* Free the device list */
+		pcap_freealldevs(alldevs);
+	}
+
+	// set the filter
+	if (pcap_setfilter(pCapObj, &fcode) < 0)
+	{
+		fprintf(stderr, "\nError setting the filter.\n");
+		/* Free the device list */
+		pcap_freealldevs(alldevs);
 	}
 
 	// Free the devices, since we choose ours already.
@@ -262,7 +287,7 @@ void CaptureEngine::Display()
 		}
 
 		// Wait to update in this mode.
-		Sleep(333);
+		Sleep(100);
 
 	}
 
@@ -524,6 +549,10 @@ void CaptureEngine::CheckTimeout()
 				connections.erase(keysToRemove[i]);
 			}
 			uniqueLock.unlock();
+
+			// Run the Display again in case the list has changed.
+			Display();
+
 		}
 
 		// Wait to try again for a fifth of the Timeout Time
