@@ -104,7 +104,7 @@ void CaptureEngine::Capture()
 		/* If the interface is without addresses we suppose to be in a C class network */
 		netmask = 0xffffff;
 
-	// compile the filter
+	// compile the filter for TCP and UDP (tcp or udp, because we want both)
 	if (pcap_compile(pCapObj, &fcode, "tcp or udp", 1, netmask) < 0)
 	{
 		fprintf(stderr, "\nUnable to compile the packet filter. Check the syntax.\n");

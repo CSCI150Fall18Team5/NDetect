@@ -23,10 +23,10 @@ class GraphicsEngine
 	// bool * keyA = &keysPressed[9];
 
 	// Wireframe Toggle
-	bool WireFrame = true;
+	bool WireFrame = false;
 
 	// Dimensions Used
-	bool Render3D = false;
+	bool Render3D = true;
 
 	// Lighting and Materials
 	const GLfloat light_ambient[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -43,7 +43,7 @@ class GraphicsEngine
 	float bgRed = 0.01, bgGreen = 0.02, bgBlue = 0.05;
 
 	// Circle Vars
-	float circRed = 0.2, circGreen = 0.2, circBlue = 0.3;
+	float circRed = 0.4, circGreen = 0.4, circBlue = 0.6;
 
 	// Camera Position and Direction
 	float camX = 0.0, camY = -15.0, camZ = 5.0;
@@ -85,6 +85,8 @@ public:
 	void DrawHost(VisualConnection vCon);
 	void DrawHostLines();
 	void DrawHostLine(VisualConnection from, VisualConnection to);
+	void DrawString(float x, float y, int r, int g, int b, const char *string);
+
 
 	// Called when the window resizes.
 	void Resize(int width, int height);

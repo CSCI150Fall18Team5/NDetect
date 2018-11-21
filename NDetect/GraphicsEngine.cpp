@@ -54,13 +54,14 @@ void GraphicsEngine::Display()
 	// Update the rotation of all hosts
 	// RotateAngle = (RotateAngle >= 360) ? 0 : RotateAngle + 0.0025;
 
-	
-	// Place the hosts around
-	DrawHosts();
 
 	// Draw lines between hosts.
 	DrawHostLines();
 	
+	// Place the hosts around
+	DrawHosts();
+	
+	// Draw the circle that the host nodes will encompass.
 	DrawCircle(0.0, 0.0, circleRadius, 1080);
 
 
@@ -160,7 +161,20 @@ void GraphicsEngine::DrawHosts()
 
 void GraphicsEngine::DrawHost(VisualConnection vCon)
 {
+	// Decide which way to render
 	if (Render3D) {
+
+
+		// DrawString(vCon.tX - 0.40, vCon.tY - 0.325, vCon.Red, vCon.Green, vCon.Blue, vCon.SourceIP.c_str());
+		// Align the IP Display with the radius of the host
+		float textX = (vCon.tX -0.40);
+		float textY = (vCon.tY - (vCon.radius * 1.9) * vCon.sX );
+
+		/* Draw white text */
+		// DrawString(textX, textY, 1.0, 5, 3.5, vCon.SourceIP.c_str());
+		
+		// Draw the host IP near the node
+		DrawString(textX, textY, vCon.Red * 10, vCon.Green * 10, vCon.Blue * 10, vCon.SourceIP.c_str());
 
 		// Push a new matrix into the framework.
 		glPushMatrix();
@@ -177,10 +191,21 @@ void GraphicsEngine::DrawHost(VisualConnection vCon)
 		glutSolidSphere(vCon.radius, 20, 10);
 		// Pop the Matrix off, so that further alterations don't apply to this object.
 		glPopMatrix();
+
 	}
 	else {
+
+		DrawString(vCon.tX - 0.40, vCon.tY - 0.325, vCon.Red, vCon.Green, vCon.Blue, vCon.SourceIP.c_str());
+		// Align the IP Display with the radius of the host
+		float textX = (vCon.tX - vCon.radius) - 0.40;
+		float textY = (vCon.tY - vCon.radius) - 0.325;
+
+		// Draw the host IP near the node
+		DrawString(textX, textY, 1.0, 5, 3.5, vCon.SourceIP.c_str());
+
 		DrawFilledCircle(vCon.tX, vCon.tY, vCon.radius, 360);
 	}
+	
 
 }
 
@@ -219,6 +244,21 @@ void GraphicsEngine::DrawHostLine(VisualConnection from, VisualConnection to)
 		glEnd();
 	}
 	
+}
+
+void GraphicsEngine::DrawString(float x, float y, int r, int g, int b, const char * string)
+{
+	int j = strlen(string);
+
+	// Color the Text
+	glColor3f(r, g, b);
+	// Set the position
+	glRasterPos2f(x, y);
+	// Draw the characters
+	for (int i = 0; i < j; i++) {
+		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, string[i]);
+	}
+
 }
 
 void GraphicsEngine::Resize(int width, int height)
@@ -364,7 +404,7 @@ void GraphicsEngine::UpdateConnections()
 		// Transform those connection into Visual Connections
 		ProcessConnections();
 		// Wait before trying again
-		Sleep(100);
+		Sleep(250);
 	}
 }
 
@@ -379,6 +419,9 @@ void GraphicsEngine::ProcessConnections()
 	// Get Counts
 	int pckTotal = captureEngine->GetPacketCount();
 	int connectionCount = connectionList.size();
+
+	// Localhost present in connections
+	bool localHostFound = false;
 
 	// First create temporary Visual Connections from existing connections
 	for (auto c : connectionList)
@@ -403,17 +446,16 @@ void GraphicsEngine::ProcessConnections()
 		}
 
 		// Subtract one Host node if 
-		if (sourceIP == hostIP) {
-			
-
+		if (sourceIP == hostIP || destIP == hostIP) {
+			localHostFound = true;
 		}
 	}
 
 	// Used to calculate each connections position on the graph.
 	int counter = 0;
 	bool localHostPlaced = false;
-	// Host Count
-	int hCount = tempVConnections.size() - 1;
+	// Host Count ( Subtract one because the localhost will be in the center.
+	int hCount = tempVConnections.size();
 
 	for (auto & tVC : tempVConnections)
 	{
@@ -425,6 +467,8 @@ void GraphicsEngine::ProcessConnections()
 			// Set the X,Y, and Z values of the center point
 			tVC.second.SetTranslation(0.0, 0.0, 0.0);
 			localHostPlaced = true;
+			// Decrement host count because the localhost isn't in the circle.
+			hCount--;
 		}
 		else {
 			// Set the X,Y, and Z values of the center point
@@ -448,8 +492,10 @@ void GraphicsEngine::ProcessConnections()
 
 		// Adjust Colors
 		tVC.second.Red += tVC.second.totalBytes / 256;
+		/*
 		tVC.second.Blue -= tVC.second.totalBytes / 256;
 		tVC.second.Green -= tVC.second.totalBytes / 256;
+		*/
 
 		// Set the rotation
 		tVC.second.rA = RotateAngle;
@@ -519,6 +565,9 @@ void GraphicsEngine::Init()
 	// Change the camera view depending on the Render Dimensions
 	if (Render3D) {
 
+		camX = 0.0;
+		camY = 0.0;
+		camZ = 14.0;
 	}
 	else {
 
