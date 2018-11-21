@@ -23,10 +23,10 @@ class GraphicsEngine
 	// bool * keyA = &keysPressed[9];
 
 	// Wireframe Toggle
-	bool WireFrame = true;
+	bool WireFrame = false;
 
 	// Dimensions Used
-	bool Render3D = false;
+	bool Render3D = true;
 
 	// Lighting and Materials
 	const GLfloat light_ambient[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -40,10 +40,10 @@ class GraphicsEngine
 	const GLfloat high_shininess[1] = { 100.0f };
 
 	// Background colors
-	float bgRed = 0.01, bgGreen = 0.02, bgBlue = 0.05, bgAlpha = 0.0;
+	float bgRed = 0.01, bgGreen = 0.02, bgBlue = 0.05;
 
 	// Circle Vars
-	float circRed = 0.0, circBlue = 8.5, circGreen = 1.5;
+	float circRed = 0.4, circGreen = 0.4, circBlue = 0.6;
 
 	// Camera Position and Direction
 	float camX = 0.0, camY = -15.0, camZ = 5.0;
@@ -55,16 +55,13 @@ class GraphicsEngine
 	// Rotation
 	float RotateAngle = 0.0, RotateX = 0.0, RotateY = 0.0, RotateZ = 1.0;
 
-	// Scale
-	float ScaleX = 2.0f, ScaleY = 1.0f, ScaleZ = 2.0f;
-
 	// Pointer to the CaptureEngine
 	CaptureEngine * captureEngine;
 
 	// Connections obtained from the CaptureEngine
 	std::list<Connection> connectionList;
 
-	std::list<VisualConnection> visualConnections;
+	std::map<std::string,VisualConnection> visualConnections;
 
 	// Manages running threads and holds between them.
 	ThreadManager * threadMan;
@@ -85,19 +82,16 @@ public:
 	void DrawFilledCircle(float centerX, float centerY, float radius, int segments);
 
 	void DrawHosts();
-
 	void DrawHost(VisualConnection vCon);
-
 	void DrawHostLines();
+	void DrawHostLine(VisualConnection from, VisualConnection to);
+	void DrawString(float x, float y, int r, int g, int b, const char *string);
 
-	void DrawHostLine(VisualConnection vCon);
 
 	// Called when the window resizes.
 	void Resize(int width, int height);
-
 	// Runs when the framework isn't rendering a frame
 	void Idle();
-
 	// Initialization of the Framework
 	void Init();
 
@@ -110,7 +104,6 @@ public:
 
 	// CaptureEngine Interactions
 	void UpdateConnections();
-
 	void ProcessConnections();
 
 	// Starts the GLUT Window loop.
@@ -121,8 +114,6 @@ public:
 	// Class member functions, as they contain the "this" pointer in
 	// all member functions, and thus the function declaration doesn't match.
 	// See also: https://stackoverflow.com/questions/2420346/c-api-function-callbacks-into-c-member-function-code/2420382#2420382
-
-
 	/*
 	  _____   ____    _   _  ____ _______    _____ _    _          _   _  _____ ______
 	 |  __ \ / __ \  | \ | |/ __ \__   __|  / ____| |  | |   /\   | \ | |/ ____|  ____|

@@ -82,10 +82,11 @@ void CaptureEngine::SelectInterface()
 
 void CaptureEngine::Capture()
 {	
+
 	// Open the device 
 	if ((pCapObj = pcap_open(interfaceName.c_str(),
 		100 /*snaplen - integer which defines the maximum number of bytes to be captured by pcap*/,
-		captureMode /*flags*/,
+		0 /*flags*/,
 		20 /*read timeout*/,
 		NULL /* remote authentication */,
 		errbuf)
@@ -93,6 +94,30 @@ void CaptureEngine::Capture()
 	{
 		printf("\nError opening adapter\n");
 		return;
+	}
+
+	// Set the Netmask
+	if (d->addresses != NULL)
+		/* Retrieve the mask of the first address of the interface */
+		netmask = ((struct sockaddr_in *)(d->addresses->netmask))->sin_addr.S_un.S_addr;
+	else
+		/* If the interface is without addresses we suppose to be in a C class network */
+		netmask = 0xffffff;
+
+	// compile the filter for TCP and UDP (tcp or udp, because we want both)
+	if (pcap_compile(pCapObj, &fcode, "tcp or udp", 1, netmask) < 0)
+	{
+		fprintf(stderr, "\nUnable to compile the packet filter. Check the syntax.\n");
+		/* Free the device list */
+		pcap_freealldevs(alldevs);
+	}
+
+	// set the filter
+	if (pcap_setfilter(pCapObj, &fcode) < 0)
+	{
+		fprintf(stderr, "\nError setting the filter.\n");
+		/* Free the device list */
+		pcap_freealldevs(alldevs);
 	}
 
 	// Free the devices, since we choose ours already.
@@ -111,7 +136,7 @@ void CaptureEngine::CaptureLoop()
 	threadMan->Threads[threadMan->ThreadCount++] = std::thread(&CaptureEngine::CheckTimeout, this);
 	
 	// Read the packets 
-	while ((res = pcap_next_ex(pCapObj, &header, &pkt_data)) >= 0 && continueCapturing)
+	while ((res = pcap_next_ex(pCapObj, &header, &pkt_data)) >= 0)
 	{
 		if (res == 0)
 			/* Timeout elapsed */
@@ -260,11 +285,14 @@ void CaptureEngine::Display()
 			if(noFilter)
 				printf(" %i \t| %i \t\t| %s \t| %s:%s \t| %s:%s \n", con.GetTotalBytes(), con.GetPacketCount(), pktTime, con.sourceIpString.c_str(), con.sourcePortString.c_str(), con.destIpString.c_str(), con.destPortString.c_str());
 		}
+
+		// Wait to update in this mode.
+		Sleep(100);
+
 	}
 
 	lockConns.unlock();
 	lockPackets.unlock();
-	Sleep(100);
 }
 
 
@@ -436,10 +464,6 @@ bool CaptureEngine::ConnectionExists(Packet pkt)
 	return false;
 }
 
-void CaptureEngine::SetContinueCapturing(bool val)
-{
-	this->continueCapturing = val;
-}
 
 void CaptureEngine::SetPacketLimit(int max)
 {
@@ -534,6 +558,10 @@ void CaptureEngine::CheckTimeout()
 				connections.erase(keysToRemove[i]);
 			}
 			uniqueLock.unlock();
+
+			// Run the Display again in case the list has changed.
+			Display();
+
 		}
 
 		// Wait to try again for a fifth of the Timeout Time

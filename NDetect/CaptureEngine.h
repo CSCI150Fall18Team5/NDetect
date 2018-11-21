@@ -65,6 +65,7 @@ class CaptureEngine
 	const u_char *pkt_data;
 	// Used for Filtering
 	u_int netmask;
+	struct bpf_program fcode;
 
 	// Used in Decoding the packet
 	struct tm ltime;
@@ -120,14 +121,10 @@ class CaptureEngine
 	*/
 	std::map <std::string, Connection> connections;
 
-	// Halts capturing if changed
-	bool continueCapturing = true;
-
 	// Prints the interfaces
 	void ifprint(pcap_if_t *d, int i);
 	// IP to string conversion
 	char * iptos(u_long in);
-
 
 public:
 	CaptureEngine(ThreadManager * tm);
@@ -190,9 +187,6 @@ public:
 
 	// Returns true if there is a connection built from the packet arg.
 	bool ConnectionExists(Packet pkt);
-
-	// Used for CTRL+C sequence
-	void SetContinueCapturing(bool);
 
 	// Setter for Packet Limit
 	void SetPacketLimit(int max);

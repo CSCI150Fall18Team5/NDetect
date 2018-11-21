@@ -156,43 +156,35 @@ public:
 class VisualConnection {
 
 public:
-	// IP Address or perhaps hostname?
-	std::string Name;
+	// Static IP Address and Port
+	std::string SourceIP;
+	std::string SourcePort;
+
+	std::list<std::string> DestIPs;
 
 	// Set when this Connection is from the local host
 	bool isLocalHost = false;
-
-	// Connection Object for TCP/IP Info.
-	Connection conn;
-
 	// Number of packets that match this connection
 	int packetCount = 0;
-
 	// Combined length of packets for this connection
 	int totalBytes = 0;
 
 	// Object colors
 	float Red = 0.0, Green = 0.85, Blue = 0.15;
-
 	// Object Radius
-	float radius = 0.25;
-	
+	float radius = 0.15;
 	// Translation
 	float tX = 0.0, tY = 0.0, tZ = 0.0;
-
 	// Rotation
 	float rA = 0.0, rX = 0.0, rY = 0.0, rZ = 0.0;
-
 	// Scale
 	float sX = 1.0f, sY = 1.0f, sZ = 1.0f;
-
-	// Destination Connections
-	VisualConnection * DestConns[10];
-	int DestCount = 0;
-
+	
+	// Contructors
 	VisualConnection();
-	VisualConnection(std::string name);
-	VisualConnection(std::string name, Connection con);
+	VisualConnection(std::string ipAddr, std::string port);
+	VisualConnection(Connection con);
+	~VisualConnection();
 
 	// VisualConnection& operator=(const Connection con);
 
@@ -200,7 +192,6 @@ public:
 	void SetRotation(float angle, float x, float y, float z);
 	void SetScale(float x, float y, float z);
 	void SetColor(float r, float g, float b);
-	void SetDestination(VisualConnection * vCon);
 
 };
 
