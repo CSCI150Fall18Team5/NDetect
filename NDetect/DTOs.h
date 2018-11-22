@@ -150,10 +150,38 @@ public:
 };
 
 
+
+// Visual Object Attributes
+// Declare a structure for our 3D object
+class VisualObjectAttributes {
+public:
+	// Attributes
+	double Red = 0, Green = 0, Blue = 0;
+	double xPos = 0, yPos = 0, zPos = 0;
+	double xRot = 0, yRot = 0, zRot = 0;
+	double xSca = 1.0, ySca = 1.0, zSca = 1.0;
+	double radius = 0, slices = 0, stacks = 0;
+	double angle = 0, xAng = 0, yAng = 1, zAng = 0;
+
+	// Empty Constructor
+	VisualObjectAttributes();
+	
+	// Rotate by adding double a to current angle.
+	void IncRotate(double a);
+
+	// Basic transformation and translation functions.
+	void SetRotation(double a, double x, double y, double z);
+	void SetShape(double r = 0, double l = 0, double t = 0);
+	void SetRGBColor(double r = 0, double g = 0, double b = 0);
+	void SetScaling(double x = 0, double y = 0, double z = 0);
+	void SetPosition(double x = 0, double y = 0, double z = 0);
+};
+
+
 // VisualConnection
 // Encapsulates a connection, and gives it properties usable in the GraphicsEngine
 
-class VisualConnection {
+class VisualConnection : public VisualObjectAttributes {
 
 public:
 	// Static IP Address and Port
@@ -168,17 +196,6 @@ public:
 	int packetCount = 0;
 	// Combined length of packets for this connection
 	int totalBytes = 0;
-
-	// Object colors
-	float Red = 0.0, Green = 0.85, Blue = 0.15;
-	// Object Radius
-	float radius = 0.15;
-	// Translation
-	float tX = 0.0, tY = 0.0, tZ = 0.0;
-	// Rotation
-	float rA = 0.0, rX = 0.0, rY = 0.0, rZ = 0.0;
-	// Scale
-	float sX = 1.0f, sY = 1.0f, sZ = 1.0f;
 	
 	// Contructors
 	VisualConnection();
@@ -187,11 +204,5 @@ public:
 	~VisualConnection();
 
 	// VisualConnection& operator=(const Connection con);
-
-	void SetTranslation(float x, float y, float z);
-	void SetRotation(float angle, float x, float y, float z);
-	void SetScale(float x, float y, float z);
-	void SetColor(float r, float g, float b);
-
 };
 

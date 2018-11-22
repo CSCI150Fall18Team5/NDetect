@@ -107,7 +107,7 @@ void GraphicsEngine::DrawCircle(float centerX, float centerY, float radius, int 
 		//calculate the y component 
 		float y = radius * sinf(theta);
 		// Draw the point vertex
-		glVertex3f(centerX + x, centerY + y, 0.0);
+		glVertex3f(centerX + x, centerY + y, -0.1);
 	}
 	glEnd();
 }
@@ -165,10 +165,10 @@ void GraphicsEngine::DrawHost(VisualConnection vCon)
 	if (Render3D) {
 
 
-		// DrawString(vCon.tX - 0.40, vCon.tY - 0.325, vCon.Red, vCon.Green, vCon.Blue, vCon.SourceIP.c_str());
+		// DrawString(vCon.xPos - 0.40, vCon.yPos - 0.325, vCon.Red, vCon.Green, vCon.Blue, vCon.SourceIP.c_str());
 		// Align the IP Display with the radius of the host
-		float textX = (vCon.tX -0.40);
-		float textY = (vCon.tY - (vCon.radius * 1.9) * vCon.sX );
+		float textX = (vCon.xPos -0.40);
+		float textY = (vCon.yPos - (vCon.radius * 1.9) * vCon.xSca );
 
 		/* Draw white text */
 		// DrawString(textX, textY, 1.0, 5, 3.5, vCon.SourceIP.c_str());
@@ -181,11 +181,11 @@ void GraphicsEngine::DrawHost(VisualConnection vCon)
 		// Color the object
 		glColor3f(vCon.Red, vCon.Green, vCon.Blue);
 		// Translate the object to x,y,z coords
-		glTranslatef(vCon.tX, vCon.tY, vCon.tZ);
+		glTranslatef(vCon.xPos, vCon.yPos, vCon.zPos);
 		// Rotate by angle on x,y,z	
-		glRotatef(vCon.rA, vCon.rX, vCon.rY, vCon.rZ);
+		glRotatef(vCon.angle, vCon.xRot, vCon.yRot, vCon.zRot);
 		// Scale the object
-		glScalef(vCon.sX, vCon.sY, vCon.sZ);
+		glScalef(vCon.xSca, vCon.ySca, vCon.zSca);
 		// Place an Object into the matrix
 		// glutSolidIcosahedron();
 		glutSolidSphere(vCon.radius, 20, 10);
@@ -195,15 +195,15 @@ void GraphicsEngine::DrawHost(VisualConnection vCon)
 	}
 	else {
 
-		DrawString(vCon.tX - 0.40, vCon.tY - 0.325, vCon.Red, vCon.Green, vCon.Blue, vCon.SourceIP.c_str());
+		DrawString(vCon.xPos - 0.40, vCon.yPos - 0.325, vCon.Red, vCon.Green, vCon.Blue, vCon.SourceIP.c_str());
 		// Align the IP Display with the radius of the host
-		float textX = (vCon.tX - vCon.radius) - 0.40;
-		float textY = (vCon.tY - vCon.radius) - 0.325;
+		float textX = (vCon.xPos - vCon.radius) - 0.40;
+		float textY = (vCon.yPos - vCon.radius) - 0.325;
 
 		// Draw the host IP near the node
 		DrawString(textX, textY, 1.0, 5, 3.5, vCon.SourceIP.c_str());
 
-		DrawFilledCircle(vCon.tX, vCon.tY, vCon.radius, 360);
+		DrawFilledCircle(vCon.xPos, vCon.yPos, vCon.radius, 360);
 	}
 	
 
@@ -239,8 +239,8 @@ void GraphicsEngine::DrawHostLine(VisualConnection from, VisualConnection to)
 	for (auto & dC: visualConnections) {
 
 		glBegin(GL_LINES);
-		glVertex3f(from.tX, from.tY, 0.0);
-		glVertex3f(to.tX, to.tY, 0.0);
+		glVertex3f(from.xPos, from.yPos, -0.1);
+		glVertex3f(to.xPos, to.yPos, -0.1);
 		glEnd();
 	}
 	
@@ -459,20 +459,21 @@ void GraphicsEngine::ProcessConnections()
 
 	for (auto & tVC : tempVConnections)
 	{
-		// Get our Theta 
-		float theta = 2.0f * 3.1415926f * float(counter++) / float(hCount);
-		
+
 		// If this is the localhost, place the dot in the center.
 		if (!localHostPlaced && tVC.second.SourceIP == hostIP) {
 			// Set the X,Y, and Z values of the center point
-			tVC.second.SetTranslation(0.0, 0.0, 0.0);
+			tVC.second.SetPosition(0.0, 0.0, 0.0);
 			localHostPlaced = true;
 			// Decrement host count because the localhost isn't in the circle.
 			hCount--;
 		}
 		else {
+			// Get our Theta 
+			float theta = 2.0f * 3.1415926f * float(counter++) / float(hCount);
+
 			// Set the X,Y, and Z values of the center point
-			tVC.second.SetTranslation(circleRadius * cosf(theta), circleRadius * sinf(theta), 0.0);
+			tVC.second.SetPosition(circleRadius * cosf(theta), circleRadius * sinf(theta), 0.0);
 		}
 
 		// Get Packet Count
@@ -488,20 +489,17 @@ void GraphicsEngine::ProcessConnections()
 				Scale = 1.0 + (pckCount / (pckTotal / connectionCount));
 			}
 		}
-		tVC.second.SetScale(Scale, Scale, Scale);
+		tVC.second.SetScaling(Scale, Scale, Scale);
 
 		// Adjust Colors
-		tVC.second.Red += tVC.second.totalBytes / 256;
+		tVC.second.SetRGBColor(tVC.second.totalBytes / 256, 0.85, 0.15);
 		/*
 		tVC.second.Blue -= tVC.second.totalBytes / 256;
 		tVC.second.Green -= tVC.second.totalBytes / 256;
 		*/
 
 		// Set the rotation
-		tVC.second.rA = RotateAngle;
-		tVC.second.rX = RotateX;
-		tVC.second.rY = RotateY;
-		tVC.second.rZ = RotateZ;
+		tVC.second.SetRotation(RotateAngle, RotateX, RotateY, RotateZ);
 	}
 	// Lock the thread so we can safely access the List.
 	std::unique_lock<std::mutex> uniqueLock(threadMan->muxVisualConnections);
