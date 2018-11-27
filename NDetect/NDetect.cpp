@@ -55,6 +55,45 @@ int main(int argc, char **argv)
 	//		std::cout << "is it an alias? " << isaliasport(temp)<<"\n";//		std::cout << captureengine.myfilter->getlocalportfrommap(temp)<<"\n";
 	//	}
 
+	//Configuration Menu 
+	int menu_choice;
+	std::cout << "Select Menu Mode: (1) Set Packet Limit \n (2) Set Connection Timeout \n (3) Set Network Interface \n (4) Set Console \n (5) Start Capture \n";
+	std::cin >> menu_choice;
+	switch (menu_choice)
+	{
+	case 1: // Set Packet Limit
+		int packet_limit;
+		std::cout << "Select the max packet limit \n";
+		std::cin >> packet_limit;
+		captureEngine.SetPacketLimit(packet_limit);
+
+		break;
+	case 2: // Set Connection Timeout
+		// Set the Connection Timeout in Seconds
+		int timeout;
+		std::cout << "Select the max packet limit \n";
+		std::cin >> timeout;
+		captureEngine.SetTimeout(timeout);
+		break;
+	case 3: //  Select Network Interface
+
+	// Select the Interfeace
+		captureEngine.SelectInterface();
+
+		break;
+	case 4: // Set Console output
+		//con.Console_Display;
+		break;
+	case 5: // Start Capture 
+		captureEngine.Capture();
+		break;
+	default:
+		std::cout << "Answer out of scope\n";
+		break;
+	}
+
+
+
 	// Enter Filter
 	std::cout << "Do you want to apply a filter (yes/no)? \n";
 	std::cin >> choice;
@@ -92,39 +131,11 @@ int main(int argc, char **argv)
 		captureEngine.noFilter = true;
 	}
 
-	// Console Mode 
 	
-	int console_choice;
-	std::cout << "Select Console Mode: (1) Live Stream \n (2) Statistics \n (3) Combo \n (4)Connection \n";
-	std::cin >> console_choice; 
-	switch (console_choice)
-	{
-	case 1: // Live Stream
-		LiveStream;
-		break;
-	case 2: // Statistics
+
+
+
 	
-		break;
-	case 3: //  Combo
-		
-		break;
-	case 4: // Connection
-		
-		break;
-	default:
-		std::cout << "Answer out of scope\n";
-		break;
-	}
-
-
-	// Set the capture mode
-	captureEngine.SetCaptureMode(0);
-
-	// Select the Interfeace
-	captureEngine.SelectInterface();
-
-	// Set the Connection Timeout in Seconds
-	captureEngine.SetTimeout(10);
 
 	// Set the Console output mode
 	captureEngine.SetConsoleMode(ConnectionsMade);

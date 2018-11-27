@@ -7,9 +7,30 @@ Console::Console() {
 Console::~Console() {
 
 }
+void Console::Console_Diplay() {
+	// Console Mode 
 
-void Console::Console_Display(){
+	int console_choice;
+	std::cout << "Select Console Mode: (1) Live Stream \n (2) Statistics \n (3) Combo \n (4)Connection \n";
+	std::cin >> console_choice;
+	switch (console_choice)
+	{
+	case 1: // Live Stream
 
+		break;
+	case 2: // Statistics
+
+		break;
+	case 3: //  Combo
+
+		break;
+	case 4: // Connection
+
+		break;
+	default:
+		std::cout << "Answer out of scope\n";
+		break;
+	}
 }
 void Console::Live_Stream() {
 
