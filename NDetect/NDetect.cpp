@@ -2,7 +2,10 @@
 #include "CaptureEngine.h"
 #include "ThreadManager.h"
 #include "GraphicsEngine.h"
+#include"Console.h"
 #include <string>
+
+
 
 //
 // NOTE: remember to include WPCAP and HAVE_REMOTE among your
@@ -11,7 +14,8 @@
 
 // checks if user enteres an alias port
 bool isAliasPort(std::string port);
-
+//Console Mode
+Console con;
 // Thread Manager
 ThreadManager threadMan;
 
@@ -87,7 +91,32 @@ int main(int argc, char **argv)
 	else {
 		captureEngine.noFilter = true;
 	}
+
+	// Console Mode 
+	
+	int console_choice;
+	std::cout << "Select Console Mode: (1) Live Stream \n (2) Statistics \n (3) Combo \n (4)Connection \n";
+	std::cin >> console_choice; 
+	switch (console_choice)
+	{
+	case 1: // Live Stream
+		LiveStream;
+		break;
+	case 2: // Statistics
+	
+		break;
+	case 3: //  Combo
 		
+		break;
+	case 4: // Connection
+		
+		break;
+	default:
+		std::cout << "Answer out of scope\n";
+		break;
+	}
+
+
 	// Set the capture mode
 	captureEngine.SetCaptureMode(0);
 

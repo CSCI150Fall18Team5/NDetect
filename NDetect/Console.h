@@ -6,7 +6,7 @@ class Console{
 	~Console();
 
 	//The Five different types of Console options
-	void Console_Display();
+	
 	void Live_Stream();
 	void Statistics();
 	void Combo_Diplay();
