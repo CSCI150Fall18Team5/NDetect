@@ -167,7 +167,7 @@ void GraphicsEngine::DrawHost(VisualConnection vCon)
 
 		// DrawString(vCon.xPos - 0.40, vCon.yPos - 0.325, vCon.Red, vCon.Green, vCon.Blue, vCon.SourceIP.c_str());
 		// Align the IP Display with the radius of the host
-		float textX = (vCon.xPos -0.40);
+		float textX = (vCon.xPos -0.425);
 		float textY = (vCon.yPos - (vCon.radius * 1.9) * vCon.xSca );
 
 		/* Draw white text */
@@ -235,7 +235,7 @@ void GraphicsEngine::DrawHostLine(VisualConnection from, VisualConnection to)
 {
 	
 	glLineWidth(from.packetCount / 4);
-	glColor3f(0.8, 1.0, 0.8);	
+	glColor3f(1, 3, 3);	
 	for (auto & dC: visualConnections) {
 
 		glBegin(GL_LINES);
@@ -282,7 +282,7 @@ void GraphicsEngine::Resize(int width, int height)
 
 void GraphicsEngine::Idle()
 {
-	glutPostRedisplay();
+	// glutPostRedisplay();
 }
 
 void GraphicsEngine::KeyDown(unsigned char key, int x, int y)
@@ -403,8 +403,10 @@ void GraphicsEngine::UpdateConnections()
 		connectionList = captureEngine->GetConnections();
 		// Transform those connection into Visual Connections
 		ProcessConnections();
+		// Draw the changes
+		glutPostRedisplay();
 		// Wait before trying again
-		Sleep(250);
+		Sleep(333);
 	}
 }
 

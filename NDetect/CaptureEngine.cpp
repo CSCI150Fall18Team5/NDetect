@@ -82,11 +82,10 @@ void CaptureEngine::SelectInterface()
 
 void CaptureEngine::Capture()
 {	
-
 	// Open the device 
 	if ((pCapObj = pcap_open(interfaceName.c_str(),
 		100 /*snaplen - integer which defines the maximum number of bytes to be captured by pcap*/,
-		0 /*flags*/,
+		PCAP_OPENFLAG_MAX_RESPONSIVENESS /*flags*/,
 		20 /*read timeout*/,
 		NULL /* remote authentication */,
 		errbuf)
@@ -94,6 +93,14 @@ void CaptureEngine::Capture()
 	{
 		printf("\nError opening adapter\n");
 		return;
+	}
+
+	/* Check the link layer. We support only Ethernet for simplicity. */
+	if (pcap_datalink(pCapObj) != DLT_EN10MB)
+	{
+		fprintf(stderr, "\nThis program works only on Ethernet networks.\n");
+		/* Free the device list */
+		pcap_freealldevs(alldevs);
 	}
 
 	// Set the Netmask
