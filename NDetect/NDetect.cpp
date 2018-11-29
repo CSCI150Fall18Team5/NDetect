@@ -57,7 +57,7 @@ int main(int argc, char **argv)
 
 	//Configuration Menu 
 	int menu_choice;
-	std::cout << "Select Menu Mode: (1) Set Packet Limit \n (2) Set Connection Timeout \n (3) Set Network Interface \n (4) Set Console \n (5) Start Capture \n";
+	std::cout << "Select Menu Mode: \n (1) Set Packet Limit \n (2) Set Connection Timeout \n (3) Set Network Interface \n (4) Set Console \n (5) Start Capture \n (6) Filter \n";
 	std::cin >> menu_choice;
 	switch (menu_choice)
 	{
@@ -71,41 +71,33 @@ int main(int argc, char **argv)
 	case 2: // Set Connection Timeout
 		// Set the Connection Timeout in Seconds
 		int timeout;
-		std::cout << "Select the max packet limit \n";
+		std::cout << "Select the connection timeout limit (sec) \n";
 		std::cin >> timeout;
 		captureEngine.SetTimeout(timeout);
 		break;
 	case 3: //  Select Network Interface
-
 	// Select the Interfeace
 		captureEngine.SelectInterface();
-
 		break;
 	case 4: // Set Console output
-		//con.Console_Display;
+		con.Console_Diplay();
 		break;
 	case 5: // Start Capture 
 		captureEngine.Capture();
 		break;
-	default:
-		std::cout << "Answer out of scope\n";
-		break;
-	}
-
-
-
-	// Enter Filter
-	std::cout << "Do you want to apply a filter (yes/no)? \n";
-	std::cin >> choice;
-		
-	if (choice == "yes")
-	{
-		std::cout << "	Enter 1 for Local IP\n	Enter 2 for Destination IP\n	Enter 3 for Local Port\n	Enter 4 for Destination Port\n";
-		std::cin >> typeOfFilter;
-		std::cout << "Enter IP or Port number\n";
+	case 6: 
+		// Enter Filter
+		std::cout << "Do you want to apply a filter (yes/no)? \n";
 		std::cin >> choice;
-		switch (typeOfFilter)
+
+		if (choice == "yes")
 		{
+			std::cout << "	Enter 1 for Local IP\n	Enter 2 for Destination IP\n	Enter 3 for Local Port\n	Enter 4 for Destination Port\n";
+			std::cin >> typeOfFilter;
+			std::cout << "Enter IP or Port number\n";
+			std::cin >> choice;
+			switch (typeOfFilter)
+			{
 			case 1: // set Local IP
 				captureEngine.myFilter->SetLocalTargetIP(choice);
 				break;
@@ -113,30 +105,30 @@ int main(int argc, char **argv)
 				captureEngine.myFilter->SetDestTargetIP(choice);
 				break;
 			case 3: // set Local Port
-				if(isAliasPort(choice))
+				if (isAliasPort(choice))
 					choice = captureEngine.myFilter->GetLocalPortfromMap(choice);
 				captureEngine.myFilter->SetLocalTargetPort(choice);
 				break;
 			case 4: // Set Destination Port
-				if(isAliasPort(choice))
+				if (isAliasPort(choice))
 					choice = captureEngine.myFilter->GetLocalPortfromMap(choice);
 				captureEngine.myFilter->SetDestTargetPort(choice);
 				break;
-		default:
-			std::cout << "Answer out of scope\n";
-			break;
+			default:
+				std::cout << "Answer out of scope\n";
+				break;
+			}
 		}
-	}
-	else {
-		captureEngine.noFilter = true;
+		else {
+			captureEngine.noFilter = true;
+		}
+		break;
+	default:
+		std::cout << "Answer out of scope\n";
+		break;
 	}
 
 	
-
-
-
-	
-
 	// Set the Console output mode
 	captureEngine.SetConsoleMode(ConnectionsMade);
 

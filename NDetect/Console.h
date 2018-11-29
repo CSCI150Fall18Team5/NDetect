@@ -2,6 +2,7 @@
 #include "pch.h";
 class Console{
 	//Constructor and Destructor
+public:
 	Console();
 	~Console();
 
@@ -11,6 +12,7 @@ class Console{
 	void Statistics();
 	void Combo_Diplay();
 	void Connections();
+	//void Filter();
 
 
 };
