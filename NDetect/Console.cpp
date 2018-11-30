@@ -2,6 +2,8 @@
 #include "Console.h";
 #include "CaptureEngine.h"
 #include "ThreadManager.h"
+#include "GraphicsEngine.h"
+
 
 
 Console::Console() {
@@ -16,12 +18,11 @@ void Console::Console_Diplay() {
 	int console_choice;
 	std::cout << "Select Console Mode: \n (1) Live Stream \n (2) Statistics \n (3) Combo \n (4)Connection \n";
 	std::cin >> console_choice;
-	ThreadManager threading;
-	CaptureEngine captureEngine(&threading);
+	
 	switch (console_choice)
 	{
 	case 1: // Live Stream
-		captureEngine.SetLiveStreamDisplay(HeaderOnly);
+		Live_Stream();
 		break;
 	case 2: // Statistics
 		std::cout << "Not completed yet.....Oopps \n";
@@ -38,7 +39,17 @@ void Console::Console_Diplay() {
 	}
 }
 void Console::Live_Stream() {
+	ThreadManager threading;
+	CaptureEngine captureEngine(&threading);
+	captureEngine.myFilter->setMapPort();
+	GraphicsEngine display(&captureEngine, &threading);
 
+	captureEngine.SetCaptureMode(0);
+	captureEngine.SelectInterface();
+	captureEngine.SetConsoleMode(ConnectionsMade);
+	captureEngine.SetLiveStreamDisplay(HeaderOnly);
+	threading.Threads[threading.ThreadCount++] = std::thread(&CaptureEngine::Capture, &captureEngine);
+	display.StartGLWindow();
 }
 void Console::Statistics() {
 	//Will call the class Statistics that will display the data. 

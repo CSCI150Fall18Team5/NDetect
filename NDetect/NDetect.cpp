@@ -16,6 +16,7 @@
 bool isAliasPort(std::string port);
 //Console Mode
 Console con;
+
 // Thread Manager
 ThreadManager threadMan;
 
@@ -130,19 +131,19 @@ int main(int argc, char **argv)
 
 	
 	// Set the Console output mode
-	captureEngine.SetConsoleMode(ConnectionsMade);
+	//captureEngine.SetConsoleMode(ConnectionsMade);
 
 	// Set the Live Stream display
 	// RawData = Show Packet Data
 	// HeaderOnly = Show only the Packet Header
-	captureEngine.SetLiveStreamDisplay(HeaderOnly);
+	//captureEngine.SetLiveStreamDisplay(HeaderOnly);
 
 	// Using &captureEngine as the object reference, start the CaptureEngine::Capture method.
 	// The &CaptureEngine::Capture is a reference to the class method.
 	// This threading example does not pass arguments.
-	threadMan.Threads[threadMan.ThreadCount++] = std::thread(&CaptureEngine::Capture, &captureEngine);
+	//threadMan.Threads[threadMan.ThreadCount++] = std::thread(&CaptureEngine::Capture, &captureEngine);
 
-	graphics.StartGLWindow();
+	//graphics.StartGLWindow();
 
 }
 	
