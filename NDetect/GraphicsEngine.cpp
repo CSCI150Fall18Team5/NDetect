@@ -164,15 +164,10 @@ void GraphicsEngine::DrawHost(VisualConnection vCon)
 	// Decide which way to render
 	if (Render3D) {
 
-
-		// DrawString(vCon.xPos - 0.40, vCon.yPos - 0.325, vCon.Red, vCon.Green, vCon.Blue, vCon.SourceIP.c_str());
 		// Align the IP Display with the radius of the host
 		float textX = (vCon.xPos -0.425);
 		float textY = (vCon.yPos - (vCon.radius * 1.9) * vCon.xSca );
 
-		/* Draw white text */
-		// DrawString(textX, textY, 1.0, 5, 3.5, vCon.SourceIP.c_str());
-		
 		// Draw the host IP near the node
 		DrawString(textX, textY, vCon.Red * 10, vCon.Green * 10, vCon.Blue * 10, vCon.SourceIP.c_str());
 
