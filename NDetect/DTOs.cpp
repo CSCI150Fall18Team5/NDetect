@@ -192,8 +192,48 @@ bool Connection::isLocalHostConnection()
 	return this->isLocalHost;
 }
 
+
+VisualObjectAttributes::VisualObjectAttributes()
+{
+}
+
+// Rotate by adding double a to current angle.
+void VisualObjectAttributes::IncRotate(double a) {
+	this->angle = this->angle + a;
+}
+// Basic transformation and translation functions.
+void VisualObjectAttributes::SetRotation(double a, double x, double y, double z) {
+	this->angle = a;
+	this->xAng = x;
+	this->yAng = y;
+	this->zAng = z;
+}
+void VisualObjectAttributes::SetShape(double r, double l, double t) {
+	this->radius = r;
+	this->slices = l;
+	this->stacks = t;
+}
+void VisualObjectAttributes::SetRGBColor(double r, double g, double b) {
+	this->Red = r;
+	this->Blue = b;
+	this->Green = g;
+}
+void VisualObjectAttributes::SetScaling(double x, double y, double z) {
+	this->xSca = x;
+	this->ySca = y;
+	this->zSca = z;
+}
+void VisualObjectAttributes::SetPosition(double x, double y, double z) {
+	this->xPos = x;
+	this->yPos = y;
+	this->zPos = z;
+}
+
 VisualConnection::VisualConnection()
 {
+	// Set initial values.
+	radius = 0.15;
+	SetRGBColor(0.0, 0.85, 0.15);
 
 }
 
@@ -202,10 +242,18 @@ VisualConnection::VisualConnection(std::string ipAddr, std::string port)
 	SourceIP = ipAddr;
 	SourcePort = port;
 
+	// Set initial values.
+	radius = 0.15;
+	SetRGBColor(0.0, 0.85, 0.15);
+
 }
 
 VisualConnection::VisualConnection(Connection con)
 {
+	// Set initial values.
+	radius = 0.15;
+	SetRGBColor(0.0, 0.85, 0.15);
+
 	// Update Internal TCP/IP Vars
 	// Update the Source
 	SourceIP = con.GetSourceIP();
@@ -214,44 +262,10 @@ VisualConnection::VisualConnection(Connection con)
 	this->packetCount = con.GetPacketCount();
 	this->totalBytes = con.GetTotalBytes();
 	this->isLocalHost = con.isLocalHostConnection();
+
 }
 
 VisualConnection::~VisualConnection()
 {
 }
 
-/*
-VisualConnection & VisualConnection::operator=(const Connection con)
-{
-	// TODO: insert return statement here
-}
-*/
-
-void VisualConnection::SetTranslation(float x, float y, float z)
-{
-	tX = x;
-	tY = y;
-	tZ = z;
-}
-
-void VisualConnection::SetRotation(float angle, float x, float y, float z)
-{
-	rX = x;
-	rY = y;
-	rZ = z;
-
-}
-
-void VisualConnection::SetScale(float x, float y, float z)
-{
-	sX = x;
-	sY = y;
-	sZ = z;
-}
-
-void VisualConnection::SetColor(float r, float g, float b)
-{
-	Red = r;
-	Green = g;
-	Blue = b;
-}
