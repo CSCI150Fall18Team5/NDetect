@@ -479,8 +479,8 @@ void CaptureEngine::CreateOrUpdateConnection(Packet pkt)
 	// Lock the thread so we can safely modify the connection List.
 	std::unique_lock<std::mutex> uniqueLock(threadMan->muxConnections);
 
-	std::string key = ConstructKeyString(pkt);
 	// Build the key string and check if the connection exists.
+	std::string key = ConstructKeyString(pkt);
 	if( ConnectionExists(pkt) ){
 		Connection con = connections.at(key);
 		// Check if the packet belongs in this connection
@@ -528,7 +528,7 @@ void CaptureEngine::CheckTimeout()
 
 			// Convert min and seconds to seconds. (Minutes * 60) + Seconds 
 			// Subtract Timeout value from seconds
-			int fiveSecondsAgo = (rightNow.tm_min * 60) + (rightNow.tm_sec - timeoutSeconds);
+			int timeoutSecondsAgo = (rightNow.tm_min * 60) + (rightNow.tm_sec - timeoutSeconds);
 
 			std::string keysToRemove[1000];
 			int keyCount = 0;
@@ -545,7 +545,7 @@ void CaptureEngine::CheckTimeout()
 				packetSeconds = (lastPacketTime.tm_min * 60) + lastPacketTime.tm_sec;
 
 				// Over the Timeout Limit, erase the connection
-				if (packetSeconds <= fiveSecondsAgo) {
+				if (packetSeconds <= timeoutSecondsAgo) {
 					// Store this key to remove after the loop
 					keysToRemove[keyCount++] = con.first;
 				}
@@ -558,10 +558,7 @@ void CaptureEngine::CheckTimeout()
 				connections.erase(keysToRemove[i]);
 			}
 			uniqueLock.unlock();
-
-			// Run the Display again in case the list has changed.
-			Display();
-
+			
 		}
 
 		// Wait to try again for a fifth of the Timeout Time

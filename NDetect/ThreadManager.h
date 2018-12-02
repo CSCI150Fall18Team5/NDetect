@@ -1,12 +1,12 @@
 #pragma once
 #include "pch.h"
 
-// Making the
 class ThreadManager
 {
 public:
 
-	// Controls if threads should continue to run. Usually false when program shutting down.
+	// Controls if threads should continue to run. 
+	// Usually false when program shutting down.
 	bool threadsContinue = true;
 	// Set when EndThreads called
 	bool threadsEnded = false;
@@ -30,6 +30,5 @@ public:
 	
 	// Tries to join or detach all threads.
 	void EndThreads();
-
 };
 
