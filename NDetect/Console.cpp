@@ -46,8 +46,10 @@ void Console::Live_Stream() {
 
 	captureEngine.SetCaptureMode(0);
 	captureEngine.SelectInterface();
-	captureEngine.SetConsoleMode(ConnectionsMade);
+	captureEngine.Capture();
+	captureEngine.SetConsoleMode(LiveStream);
 	captureEngine.SetLiveStreamDisplay(HeaderOnly);
+	
 	threading.Threads[threading.ThreadCount++] = std::thread(&CaptureEngine::Capture, &captureEngine);
 	display.StartGLWindow();
 }

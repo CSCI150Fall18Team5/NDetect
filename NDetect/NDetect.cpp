@@ -75,6 +75,7 @@ int main(int argc, char **argv)
 		std::cout << "Select the connection timeout limit (sec) \n";
 		std::cin >> timeout;
 		captureEngine.SetTimeout(timeout);
+		//captureEngine.CheckTimeout();
 		break;
 	case 3: //  Select Network Interface
 	// Select the Interfeace
@@ -129,21 +130,23 @@ int main(int argc, char **argv)
 		break;
 	}
 
-	
+	captureEngine.SetCaptureMode(0);
+	captureEngine.SelectInterface();
+
 	// Set the Console output mode
-	//captureEngine.SetConsoleMode(ConnectionsMade);
+	captureEngine.SetConsoleMode(ConnectionsMade);
 
 	// Set the Live Stream display
 	// RawData = Show Packet Data
 	// HeaderOnly = Show only the Packet Header
-	//captureEngine.SetLiveStreamDisplay(HeaderOnly);
+	captureEngine.SetLiveStreamDisplay(HeaderOnly);
 
 	// Using &captureEngine as the object reference, start the CaptureEngine::Capture method.
 	// The &CaptureEngine::Capture is a reference to the class method.
 	// This threading example does not pass arguments.
-	//threadMan.Threads[threadMan.ThreadCount++] = std::thread(&CaptureEngine::Capture, &captureEngine);
+	threadMan.Threads[threadMan.ThreadCount++] = std::thread(&CaptureEngine::Capture, &captureEngine);
 
-	//graphics.StartGLWindow();
+	graphics.StartGLWindow();
 
 }
 	
