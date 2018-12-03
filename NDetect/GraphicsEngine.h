@@ -8,6 +8,9 @@ class GraphicsEngine
 	// Window Size
 	float Wwidth, Wheight;
 
+	// Mouse location
+	double  mlocX = 0, mlocY = 0;
+
 	// Key Press Array
 	bool keysPressed[10];
 
@@ -19,8 +22,9 @@ class GraphicsEngine
 	bool * keyZ = &keysPressed[5];
 	bool * keyD = &keysPressed[6];
 	bool * keyV = &keysPressed[7];
-	// bool * keyRight = &keysPressed[8];
-	// bool * keyA = &keysPressed[9];
+	
+	// Be able to pause the drawing to examine elements
+	bool isPaused = false;
 
 	// Wireframe Toggle
 	bool WireFrame = false;
@@ -102,6 +106,11 @@ public:
 	void SpecialKeyUp(int key, int x, int y);
 	void ReadKeyStates();
 
+	// Mouse handler
+	void Mouse(int btn, int state, int x, int y);
+	void MousePassive(int x, int y);
+
+
 	// CaptureEngine Interactions
 	void UpdateConnections();
 	void ProcessConnections();
@@ -129,6 +138,8 @@ public:
 	static void KeyUpCallBack(unsigned char key, int x, int y);
 	static void SpecialKeyDownCallBack(int key, int x, int y);
 	static void SpecialKeyUpCallBack(int key, int x, int y);
+	static void MouseCallBack(int btn, int state, int x, int y);
+	static void MousePassiveCallBack(int x, int y);
 };
 
 // Static Instance of this class

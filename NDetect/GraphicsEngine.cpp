@@ -65,6 +65,14 @@ void GraphicsEngine::Display()
 	DrawCircle(0.0, 0.0, circleRadius, 1080);
 
 
+	// Testing drawing the mouse position
+	glColor3f(10, 10, 10);
+	glPointSize(1.5);
+	glBegin(GL_POINTS);
+		glVertex3f(mlocX, mlocY, -0.1);
+	glEnd();
+
+
 	/*
 		This is a Template for creating objects in 3D space.
 		First you must push a new Matrix into the framework,
@@ -228,8 +236,7 @@ void GraphicsEngine::DrawHostLines()
 
 void GraphicsEngine::DrawHostLine(VisualConnection from, VisualConnection to)
 {
-	
-	glLineWidth(from.packetCount / 4);
+	glLineWidth(1);
 	glColor3f(1, 3, 3);	
 	for (auto & dC: visualConnections) {
 
@@ -287,11 +294,8 @@ void GraphicsEngine::KeyDown(unsigned char key, int x, int y)
 	case 'a':
 		*keyA = true;
 		break;
-	case 'z':
-		*keyZ = true;
-		break;
-
-	case 'd':
+	// Pressing c changes the console mode
+	case 'c':
 		if (captureEngine->GetConsoleMode() == ConsoleMode::ConnectionsMade) {
 			system("cls");
 			captureEngine->SetConsoleMode(ConsoleMode::LiveStream);
@@ -301,6 +305,17 @@ void GraphicsEngine::KeyDown(unsigned char key, int x, int y)
 		}
 		break;
 
+	// Change the dimension being rendered
+	case 'd':
+		Render3D = !Render3D;
+		break;
+
+	// Pause the display updating
+	case 'p':
+		isPaused = !isPaused;
+		break;
+
+	// Pressing q or Esc quits the program
 	case 27:
 	case 'q':
 		threadMan->EndThreads();
@@ -309,6 +324,10 @@ void GraphicsEngine::KeyDown(unsigned char key, int x, int y)
 
 	case 'w':
 		WireFrame = !WireFrame;
+		break;
+
+	case 'z':
+		*keyZ = true;
 		break;
 	}
 	ReadKeyStates();
@@ -580,6 +599,43 @@ void GraphicsEngine::Init()
 }
 
 
+void GraphicsEngine::Mouse(int btn, int state, int x, int y) {
+
+	double scale = 70 * (Wwidth / Wheight);
+
+	double mx = (double)(x - Wwidth / 2) / scale;
+	double my = (double)(Wheight / 2 - y) / scale;
+
+
+
+	switch (btn) {
+	case GLUT_LEFT_BUTTON:
+		// Only add points when we left click, and our pointIndex is below 50
+		if (state == GLUT_DOWN) {
+
+
+		}
+		break;
+	case GLUT_RIGHT_BUTTON:
+		if (state == GLUT_DOWN) {
+		}
+		break;
+	case GLUT_MIDDLE_BUTTON:
+		if (state == GLUT_DOWN) {
+		}
+	}
+	glutPostRedisplay();
+}
+void GraphicsEngine::MousePassive(int x, int y)
+{
+	double scale = 70 * (Wwidth / Wheight);
+
+	mlocX = (double)(x - Wwidth / 2) / scale;
+	mlocY = (double)(Wheight / 2 - y) / scale;
+
+}
+
+
 void GraphicsEngine::StartGLWindow()
 {
 	// Run me first
@@ -599,6 +655,11 @@ void GraphicsEngine::StartGLWindow()
 	glutSpecialUpFunc(SpecialKeyUpCallBack);
 	// Function called while the Graphics Framework is idle
 	glutIdleFunc(IdleCallBack);
+	// Sets the function called when the mouse moves
+	glutPassiveMotionFunc(MousePassiveCallBack);
+	// Sets the function when the mouse buttons are clicked
+	glutMouseFunc(MouseCallBack);
+
 	// Opens the Graphics window.
 	// Warning, this function DOES NOT RETURN!
 	// Once called, we have no control of the codebase besides callbacks set above.
@@ -630,3 +691,5 @@ void GraphicsEngine::KeyDownCallBack(unsigned char key, int x, int y){ currentIn
 void GraphicsEngine::KeyUpCallBack(unsigned char key, int x, int y){ currentInstance->KeyUp(key, x, y); }
 void GraphicsEngine::SpecialKeyDownCallBack(int key, int x, int y){	currentInstance->SpecialKeyDown(key, x, y); }
 void GraphicsEngine::SpecialKeyUpCallBack(int key, int x, int y){ currentInstance->SpecialKeyUp(key, x, y); }
+void GraphicsEngine::MouseCallBack(int btn, int state, int x, int y) { currentInstance->Mouse(btn, state, x, y); }
+void GraphicsEngine::MousePassiveCallBack(int x, int y) { currentInstance->MousePassive(x, y);  }
