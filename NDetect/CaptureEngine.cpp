@@ -85,7 +85,7 @@ void CaptureEngine::Capture()
 	// Open the device 
 	if ((pCapObj = pcap_open(interfaceName.c_str(),
 		100 /*snaplen - integer which defines the maximum number of bytes to be captured by pcap*/,
-		PCAP_OPENFLAG_MAX_RESPONSIVENESS /*flags*/,
+		0 /*flags*/,
 		20 /*read timeout*/,
 		NULL /* remote authentication */,
 		errbuf)
@@ -142,9 +142,12 @@ void CaptureEngine::CaptureLoop()
 	// Start the Timeout Thread
 	threadMan->Threads[threadMan->ThreadCount++] = std::thread(&CaptureEngine::CheckTimeout, this);
 	
+	// Start the Display Thread
+	threadMan->Threads[threadMan->ThreadCount++] = std::thread(&CaptureEngine::Display, this);
+
 	// Read the packets 
 	while ((res = pcap_next_ex(pCapObj, &header, &pkt_data)) >= 0)
-	{
+	{	
 		if (res == 0)
 			/* Timeout elapsed */
 			continue;
@@ -157,13 +160,14 @@ void CaptureEngine::CaptureLoop()
 		// Extract TCP/IP Information and create our Packet object
 		DecodePacket();
 
-		// Display changes to the console
-		Display();
+		// Wait
+		// Sleep(25);
 	}
 
 	if (res == -1)
 	{
 		printf("Error reading the packets: %s\n", pcap_geterr(pCapObj));
+		threadMan->EndThreads();
 		return;
 	}
 }
@@ -202,6 +206,9 @@ void CaptureEngine::DecodePacket()
 	// Create our Packet object, and push into our list
 	Packet pkt = Packet(rightNow, header->len, ih->saddr, sport, ih->daddr, dport);
 	
+	// New packet decoded
+	newPacketDecoded = true;
+
 	// Lock down on all Packet altering code.
 	std::unique_lock<std::mutex> uniqueLock(threadMan->muxPackets);	
 
@@ -223,83 +230,96 @@ void CaptureEngine::DecodePacket()
 
 void CaptureEngine::Display()
 {
-	// Lock down all other threads so we can display without anything changing
-	std::unique_lock<std::mutex> lockConns(threadMan->muxConnections);
-	std::unique_lock<std::mutex> lockPackets(threadMan->muxPackets);
+	// Continue to display until threads are ending
+	while (threadMan->threadsContinue) {
 
-	// Handle Console Display 
-	if (consoleMode == LiveStream) {
+		// Lock down all other threads so we can display without anything changing
+		std::unique_lock<std::mutex> lockConns(threadMan->muxConnections);
+		std::unique_lock<std::mutex> lockPackets(threadMan->muxPackets);
 
-		// Display the time, Source/Dest IP addrs and ports.
-		DisplayPacketHeader();
+		// Handle Console Display 
+		if (consoleMode == LiveStream) {
+			
+			// Only display when new packets recieved
+			if (newPacketDecoded) {
 
-		// Displays Packet data
-		if (displayPacketData) {
-			// Print out the inner packet data.
-			DisplayPacketData();
-			// Sleep a short while so that larger packets stay visible
-			Sleep(sleepTime*header->caplen * 5);
-			printf("\n\n");
+				// Display the time, Source/Dest IP addrs and ports.
+				DisplayPacketHeader();
+
+				// Displayed new packet, need to wait until new packet recieved
+				newPacketDecoded = false;
+
+				// Displays Packet data
+				if (displayPacketData) {
+					// Print out the inner packet data.
+					DisplayPacketData();
+					// Sleep a short while so that larger packets stay visible
+					Sleep(livestreamSleepTime*header->caplen * 5);
+					printf("\n\n");
+				}
+			}
 		}
-	}
-	else if (consoleMode == ConnectionsMade) {
+		else if (consoleMode == ConnectionsMade) {
 
 
-		/*=====================================
-		!!!	Clears the Console of all text !!!
-		======================================= */
-		system("cls");
+			/*=====================================
+			!!!	Clears the Console of all text !!!
+			======================================= */
+			system("cls");
 
-		printf("| Packet Count: %i \t| Connection Count: %i\t| ", capturedPackets.size(), connections.size());
-		
-		// display target ip
-		//ShowTargetIP();
+			printf("| Packet Count: %i \t| Connection Count: %i\t| ", capturedPackets.size(), connections.size());
 
-		// Display the Connection Timeout
-		printf(" Connection Timeout: %is \n\r", timeoutSeconds);
+			// display target ip
+			//ShowTargetIP();
 
-		printf("-----------------------------------------------------------------------------------------\n\r");
-		printf(" Bytes \t| Packets\t|  Time \t| Source_IP:Port \t| Destination_IP:Port \n\r");
-		printf("=========================================================================================\n\r");
-		
-		// Only show the 30 newest Connections		
-		const int connectionLimit = 30;
-		int counter = 0;
-		// C++ magic right here.
-		// Newer for loop using auto tree iterator.
-		for (auto& c : connections)
-		{
-			if (counter >= connectionLimit) {
-				break;
+			// Display the Connection Timeout
+			printf(" Connection Timeout: %is \n\r", timeoutSeconds);
+
+			printf("-----------------------------------------------------------------------------------------\n\r");
+			printf(" Bytes \t| Packets\t|  Time \t| Source_IP:Port \t| Destination_IP:Port \n\r");
+			printf("=========================================================================================\n\r");
+
+			// Only show the 30 newest Connections		
+			const int connectionLimit = 30;
+			int counter = 0;
+			// C++ magic right here.
+			// Newer for loop using auto tree iterator.
+			for (auto& c : connections)
+			{
+				if (counter >= connectionLimit) {
+					break;
+				}
+				else {
+					counter++;
+				}
+
+				// Get the second value of the map, that being the connection.
+				Connection con = c.second;
+
+				// Convert time to readable
+				char pktTime[16];
+				tm pktTM = con.GetLastPacketTime();
+				strftime(pktTime, sizeof pktTime, "%H:%M:%S", &pktTM);
+
+				if (myFilter->GetLocalTargetIP() == con.sourceIpString.c_str() || myFilter->GetDestTargetIP() == con.destIpString.c_str() || myFilter->GetLocalTargetPort() == con.sourcePortString.c_str() || myFilter->GetDestTargetPort() == con.destPortString.c_str()) {
+					// printf("|> %s : %s --> %s : %s", con.sourceIpString, con.sourcePortString, con.destIpString, con.destPortString );
+					printf(" %i \t| %i \t\t| %s \t| %s:%s \t| %s:%s \n", con.GetTotalBytes(), con.GetPacketCount(), pktTime, con.sourceIpString.c_str(), con.sourcePortString.c_str(), con.destIpString.c_str(), con.destPortString.c_str());
+					// std::cout << "|> {" << i << "} " << con.sourceIpString << con.sourcePortString << con.destIpString << con.destPortString << "\n";
+				}
+				if (noFilter)
+					printf(" %i \t| %i \t\t| %s \t| %s:%s \t| %s:%s \n", con.GetTotalBytes(), con.GetPacketCount(), pktTime, con.sourceIpString.c_str(), con.sourcePortString.c_str(), con.destIpString.c_str(), con.destPortString.c_str());
 			}
-			else {
-				counter++;
-			}
 
-			// Get the second value of the map, that being the connection.
-			Connection con = c.second;
+			// Wait to update in this mode.
+			Sleep(connectionsSleepTime);
 
-			// Convert time to readable
-			char pktTime[16];
-			tm pktTM = con.GetLastPacketTime();
-			strftime(pktTime, sizeof pktTime, "%H:%M:%S", &pktTM);
-
-			if (myFilter->GetLocalTargetIP() == con.sourceIpString.c_str() || myFilter->GetDestTargetIP() == con.destIpString.c_str() || myFilter->GetLocalTargetPort() == con.sourcePortString.c_str() || myFilter->GetDestTargetPort() == con.destPortString.c_str()) {
-				// printf("|> %s : %s --> %s : %s", con.sourceIpString, con.sourcePortString, con.destIpString, con.destPortString );
-				printf(" %i \t| %i \t\t| %s \t| %s:%s \t| %s:%s \n", con.GetTotalBytes(), con.GetPacketCount(), pktTime, con.sourceIpString.c_str(), con.sourcePortString.c_str(), con.destIpString.c_str(), con.destPortString.c_str());
-				// std::cout << "|> {" << i << "} " << con.sourceIpString << con.sourcePortString << con.destIpString << con.destPortString << "\n";
-			}
-			if(noFilter)
-				printf(" %i \t| %i \t\t| %s \t| %s:%s \t| %s:%s \n", con.GetTotalBytes(), con.GetPacketCount(), pktTime, con.sourceIpString.c_str(), con.sourcePortString.c_str(), con.destIpString.c_str(), con.destPortString.c_str());
 		}
 
-		// Wait to update in this mode.
-		Sleep(100);
+		lockConns.unlock();
+		lockPackets.unlock();
 
+		Sleep(10);
 	}
-
-	lockConns.unlock();
-	lockPackets.unlock();
 }
 
 
@@ -320,9 +340,6 @@ void CaptureEngine::DisplayPacketHeader() {
 		ih->daddr.byte3,
 		ih->daddr.byte4,
 		dport);
-
-	// print pkt timestamp and pkt len
-	// printf("%ld:%ld (%ld)\n", header->ts.tv_sec, header->ts.tv_usec, header->len);
 }
 
 void CaptureEngine::DisplayPacketData()
@@ -330,11 +347,6 @@ void CaptureEngine::DisplayPacketData()
 	// Loop through Packet data
 	for (i = 1; (i < header->caplen + 1); i++)
 	{
-		/*
-		printf("%.2x ", pkt_data[i - 1]);
-		if ((i % LINE_LEN) == 0) printf("\n");
-		*/
-
 		// First print data in Hex
 		printf("%.2X ", pkt_data[i - 1]);
 		if ((i % LINE_LEN) == 0)

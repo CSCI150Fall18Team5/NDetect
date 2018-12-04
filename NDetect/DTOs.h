@@ -21,13 +21,11 @@ enum ConsoleMode
 	Statistics, LiveStream, Combo, ConnectionsMade
 };
 
+// Enums used in GraphicsEngine
 
-// Used for Thread array index
-// Example Thread Creation:
-// threadMan->Threads[ThreadNames::Timeout] = std::thread(&CaptureEngine::CheckTimeout, this);
-enum ThreadNames
+enum GraphicsEngineState
 {
-	CaptureLoop, Timeout, UpdateConnections
+	Running, Paused, Quitting
 };
 
 
