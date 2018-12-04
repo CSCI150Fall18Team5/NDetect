@@ -2,7 +2,10 @@
 #include "CaptureEngine.h"
 #include "ThreadManager.h"
 #include "GraphicsEngine.h"
+#include"Console.h"
 #include <string>
+
+
 
 //
 // NOTE: remember to include WPCAP and HAVE_REMOTE among your
@@ -11,6 +14,8 @@
 
 // checks if user enteres an alias port
 bool isAliasPort(std::string port);
+//Console Mode
+Console con;
 
 // Thread Manager
 ThreadManager threadMan;
@@ -51,18 +56,50 @@ int main(int argc, char **argv)
 	//		std::cout << "is it an alias? " << isaliasport(temp)<<"\n";//		std::cout << captureengine.myfilter->getlocalportfrommap(temp)<<"\n";
 	//	}
 
-	// Enter Filter
-	std::cout << "Do you want to apply a filter (yes/no)? \n";
-	std::cin >> choice;
-		
-	if (choice == "yes")
+	//Configuration Menu 
+	int menu_choice;
+	std::cout << "Select Menu Mode: \n (1) Set Packet Limit \n (2) Set Connection Timeout \n (3) Set Network Interface \n (4) Set Console \n (5) Start Capture \n (6) Filter \n";
+	std::cin >> menu_choice;
+	switch (menu_choice)
 	{
-		std::cout << "	Enter 1 for Local IP\n	Enter 2 for Destination IP\n	Enter 3 for Local Port\n	Enter 4 for Destination Port\n";
-		std::cin >> typeOfFilter;
-		std::cout << "Enter IP or Port number\n";
-		std::cin >> choice;
-		switch (typeOfFilter)
-		{
+	case 1: // Set Packet Limit
+		int packet_limit;
+		std::cout << "Select the max packet limit \n";
+		std::cin >> packet_limit;
+		captureEngine.SetPacketLimit(packet_limit);
+		captureEngine.noFilter = true;
+
+		break;
+	case 2: // Set Connection Timeout
+		// Set the Connection Timeout in Seconds
+		int timeout;
+		std::cout << "Select the connection timeout limit (sec) \n";
+		std::cin >> timeout;
+		captureEngine.SetTimeout(timeout);
+		captureEngine.noFilter = true;
+		//captureEngine.CheckTimeout();
+		break;
+	case 3: //  Select Network Interface
+	// Select the Interfeace
+		captureEngine.SelectInterface();
+		captureEngine.noFilter = true;
+		break;
+	case 4: // Set Console output
+		con.Console_Diplay();
+		captureEngine.noFilter = true;
+		break;
+	case 5: // Start Capture 
+		captureEngine.Capture();
+		captureEngine.noFilter = true;
+		break;
+	case 6: 
+		// Enter Filter
+			std::cout << "	Enter 1 for Local IP\n	Enter 2 for Destination IP\n	Enter 3 for Local Port\n	Enter 4 for Destination Port\n";
+			std::cin >> typeOfFilter;
+			std::cout << "Enter IP or Port number\n";
+			std::cin >> choice;
+			switch (typeOfFilter)
+			{
 			case 1: // set Local IP
 				captureEngine.myFilter->SetLocalTargetIP(choice);
 				break;
@@ -70,32 +107,27 @@ int main(int argc, char **argv)
 				captureEngine.myFilter->SetDestTargetIP(choice);
 				break;
 			case 3: // set Local Port
-				if(isAliasPort(choice))
+				if (isAliasPort(choice))
 					choice = captureEngine.myFilter->GetLocalPortfromMap(choice);
 				captureEngine.myFilter->SetLocalTargetPort(choice);
 				break;
 			case 4: // Set Destination Port
-				if(isAliasPort(choice))
+				if (isAliasPort(choice))
 					choice = captureEngine.myFilter->GetLocalPortfromMap(choice);
 				captureEngine.myFilter->SetDestTargetPort(choice);
 				break;
-		default:
-			std::cout << "Answer out of scope\n";
-			break;
-		}
+			default:
+				std::cout << "Answer out of scope\n";
+				break;
+			}
+		break;
+	default:
+		std::cout << "Answer out of scope\n";
+		break;
 	}
-	else {
-		captureEngine.noFilter = true;
-	}
-		
-	// Set the capture mode
+
 	captureEngine.SetCaptureMode(0);
-
-	// Select the Interfeace
 	captureEngine.SelectInterface();
-
-	// Set the Connection Timeout in Seconds
-	captureEngine.SetTimeout(10);
 
 	// Set the Console output mode
 	captureEngine.SetConsoleMode(ConnectionsMade);
