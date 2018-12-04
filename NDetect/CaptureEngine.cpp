@@ -468,7 +468,7 @@ bool CaptureEngine::ConnectionExists(Packet pkt)
 void CaptureEngine::SetPacketLimit(int max)
 {
 	// Must be between 0 and maximum integer value
-	if (max >= 0 and max <= INT32_MAX)
+	if (max >= 0 && max <= INT32_MAX)
 		packetLimit = max;
 	else
 		packetLimit = 20000;

@@ -67,6 +67,7 @@ int main(int argc, char **argv)
 		std::cout << "Select the max packet limit \n";
 		std::cin >> packet_limit;
 		captureEngine.SetPacketLimit(packet_limit);
+		captureEngine.noFilter = true;
 
 		break;
 	case 2: // Set Connection Timeout
@@ -75,25 +76,24 @@ int main(int argc, char **argv)
 		std::cout << "Select the connection timeout limit (sec) \n";
 		std::cin >> timeout;
 		captureEngine.SetTimeout(timeout);
+		captureEngine.noFilter = true;
 		//captureEngine.CheckTimeout();
 		break;
 	case 3: //  Select Network Interface
 	// Select the Interfeace
 		captureEngine.SelectInterface();
+		captureEngine.noFilter = true;
 		break;
 	case 4: // Set Console output
 		con.Console_Diplay();
+		captureEngine.noFilter = true;
 		break;
 	case 5: // Start Capture 
 		captureEngine.Capture();
+		captureEngine.noFilter = true;
 		break;
 	case 6: 
 		// Enter Filter
-		std::cout << "Do you want to apply a filter (yes/no)? \n";
-		std::cin >> choice;
-
-		if (choice == "yes")
-		{
 			std::cout << "	Enter 1 for Local IP\n	Enter 2 for Destination IP\n	Enter 3 for Local Port\n	Enter 4 for Destination Port\n";
 			std::cin >> typeOfFilter;
 			std::cout << "Enter IP or Port number\n";
@@ -120,10 +120,6 @@ int main(int argc, char **argv)
 				std::cout << "Answer out of scope\n";
 				break;
 			}
-		}
-		else {
-			captureEngine.noFilter = true;
-		}
 		break;
 	default:
 		std::cout << "Answer out of scope\n";

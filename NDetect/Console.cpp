@@ -16,7 +16,7 @@ void Console::Console_Diplay() {
 	// Console Mode 
 
 	int console_choice;
-	std::cout << "Select Console Mode: \n (1) Live Stream \n (2) Statistics \n (3) Combo \n (4)Connection \n";
+	std::cout << "Select Console Mode: \n (1) Live Stream \n (2) Statistics \n (3) Combo \n ";
 	std::cin >> console_choice;
 	
 	switch (console_choice)
@@ -30,9 +30,11 @@ void Console::Console_Diplay() {
 	case 3: //  Combo
 		std::cout << "Only Live Stream working at this point \n";
 		break;
-	case 4: // Connection
-
-		break;
+	 // Connection
+		//ThreadManger thread;
+		// CaptureEngine ce(&threading);
+		//ce.Display();
+		
 	default:
 		std::cout << "Answer out of scope\n";
 		break;
@@ -44,6 +46,7 @@ void Console::Live_Stream() {
 	captureEngine.myFilter->setMapPort();
 	GraphicsEngine display(&captureEngine, &threading);
 
+	
 	captureEngine.SetCaptureMode(0);
 	captureEngine.SelectInterface();
 	captureEngine.Capture();
@@ -52,6 +55,7 @@ void Console::Live_Stream() {
 	
 	threading.Threads[threading.ThreadCount++] = std::thread(&CaptureEngine::Capture, &captureEngine);
 	display.StartGLWindow();
+	exit;
 }
 void Console::Statistics() {
 	//Will call the class Statistics that will display the data. 
