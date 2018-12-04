@@ -25,70 +25,77 @@ GraphicsEngine::~GraphicsEngine()
 
 void GraphicsEngine::Display()
 {
-	// Useful for changing arguments with the time
-	const double t = (glutGet(GLUT_ELAPSED_TIME) % 10000) / 1000.0;
-	const double a = t;
-
 	// Check if key presses changed any variables
 	ReadKeyStates();
+	if ( engineState == Running ) {
 
-	// Clear display buffers
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	// Set the Matrix Mode
-	glMatrixMode(GL_MODELVIEW);
-	// Starting Identity Matrix
-	glLoadIdentity();
+		// Clear display buffers
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		// Set the Matrix Mode
+		glMatrixMode(GL_MODELVIEW);
+		// Starting Identity Matrix
+		glLoadIdentity();
 
-	// Position the camera in 3D space.
-	gluLookAt(camX, camY, camZ, focusX, focusY, focusZ, 0.0, 1.0, 0.0);
+		// Position the camera in 3D space.
+		gluLookAt(camX, camY, camZ, focusX, focusY, focusZ, 0.0, 1.0, 0.0);
 
-	// Toggle Wireframe
-	if (WireFrame)
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);		//Draw Our Mesh In Wireframe Mesh
-	else
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);		//Toggle WIRE FRAME
-	
-	// Set the background color
-	glClearColor(bgRed, bgGreen, bgBlue, 1.0);
-
-	// Update the rotation of all hosts
-	// RotateAngle = (RotateAngle >= 360) ? 0 : RotateAngle + 0.0025;
+		// Toggle Wireframe
+		if (WireFrame)
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);		//Draw Our Mesh In Wireframe Mesh
+		else
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);		//Toggle WIRE FRAME
 
 
-	// Draw lines between hosts.
-	DrawHostLines();
-	
-	// Place the hosts around
-	DrawHosts();
-	
-	// Draw the circle that the host nodes will encompass.
-	DrawCircle(0.0, 0.0, circleRadius, 1080);
+		// Set the background color
+		glClearColor(bgRed, bgGreen, bgBlue, 1.0);
+
+		// Draw the circle that the host nodes will encompass.
+		DrawCircle(0.0, 0.0, circleRadius, 1080);
+
+		// Draw lines between hosts.
+		DrawHostLines();
+
+		// Place the hosts around
+		DrawHosts();
 
 
-	/*
-		This is a Template for creating objects in 3D space.
-		First you must push a new Matrix into the framework,
-		then perform any translations/rotation/coloring you desire.
-		Finally, put your object into that matrix and pop the matrix.
-	
-	// Push a new matrix into the framework.
-	glPushMatrix();
-		// Code for Displaying things goes here...
-		glColor3f(0.1, 0.8, 0.65);
-		// Translate the object to x,y,z coords
-		glTranslatef(TranslateX, TranslateY, TranslateZ);
-		// Rotate by angle on x,y,z	
-		glRotatef(a * 100, RotateX, RotateY, RotateZ);
-		// Scale the object
-		glScalef(ScaleX, ScaleY, ScaleZ);
-		// Place an Object into the matrix
-		// glutSolidIcosahedron();
-		glutSolidSphere(2.5, 20, 20);
-	// Pop the Matrix off, so that further alterations don't apply to this object.
-	glPopMatrix();
-	
-	*/
+		/*
+			This is a Template for creating objects in 3D space.
+			First you must push a new Matrix into the framework,
+			then perform any translations/rotation/coloring you desire.
+			Finally, put your object into that matrix and pop the matrix.
 
+		// Push a new matrix into the framework.
+		glPushMatrix();
+			// Code for Displaying things goes here...
+			glColor3f(0.1, 0.8, 0.65);
+			// Translate the object to x,y,z coords
+			glTranslatef(TranslateX, TranslateY, TranslateZ);
+			// Rotate by angle on x,y,z
+			glRotatef(a * 100, RotateX, RotateY, RotateZ);
+			// Scale the object
+			glScalef(ScaleX, ScaleY, ScaleZ);
+			// Place an Object into the matrix
+			// glutSolidIcosahedron();
+			glutSolidSphere(2.5, 20, 20);
+		// Pop the Matrix off, so that further alterations don't apply to this object.
+		glPopMatrix();
+
+		*/
+
+	} 
+	else if (engineState == Paused) {
+
+		// Draw the word "PAUSED" near the top of the screen
+		DrawString(-0.5, 5.75, 100.0, 100.0, 100.0, "PAUSED");
+		Sleep(150);
+
+	}
+	else if (engineState == Quitting) {
+		// Draw the word "SHUTTING DOWN..." near the top of the screen
+		DrawString(-0.5, 5.75, 100.0, 100.0, 100.0, "SHUTTING DOWN...");
+		Sleep(150);
+	}
 	// Swaps the buffer built in this method with the one on screen.
 	// Simply put, this renders the frame, MUST BE CALLED LAST in Display()
 	glutSwapBuffers();
@@ -112,16 +119,13 @@ void GraphicsEngine::DrawCircle(float centerX, float centerY, float radius, int 
 	glEnd();
 }
 
-void GraphicsEngine::DrawFilledCircle(float centerX, float centerY, float radius, int segments)
+void GraphicsEngine::DrawFilledCircle(float centerX, float centerY, float red, float green, float blue, float radius, int segments)
 {
-	float Red = 0.0, Blue = 8.5, Green = 1.5;
-	int drawMode = 0;
-
 	glPointSize(1.5);
 	glBegin(GL_POINTS);
 	while(radius > 0)
 	{	
-		glColor3f(Red, Blue, Green);
+		glColor3f(red, green, blue);
 		for (int i = 0; i < segments; i++) {
 			//get the current angle 
 			float theta = 2.0f * 3.1415926f * float(i) / float(segments);
@@ -133,17 +137,7 @@ void GraphicsEngine::DrawFilledCircle(float centerX, float centerY, float radius
 			glVertex3f(centerX + x, centerY + y, 0.0);
 		}
 		// Reduce the radius to fill the circle
-		radius -= 0.02;
-
-		if (drawMode == 1) {
-			Blue = (Blue <= 0.0) ? 0.0 : Blue - 0.2;
-			Green = (Green <= 0.0) ? 0.0 : Green - 0.75;
-		}
-		else {
-
-
-		}
-		
+		radius -= 0.02;		
 	}
 	glEnd();
 }
@@ -161,15 +155,15 @@ void GraphicsEngine::DrawHosts()
 
 void GraphicsEngine::DrawHost(VisualConnection vCon)
 {
+	// Align the IP Display with the radius of the host
+	float textX = (vCon.xPos - 0.55);
+	float textY = (vCon.yPos - (vCon.radius * 2.5) * vCon.xSca);
+
+	// Draw the host IP near the node
+	DrawString(textX, textY, vCon.Red * 10, vCon.Green * 10, vCon.Blue * 10, vCon.SourceIP.c_str());
+
 	// Decide which way to render
 	if (Render3D) {
-
-		// Align the IP Display with the radius of the host
-		float textX = (vCon.xPos -0.425);
-		float textY = (vCon.yPos - (vCon.radius * 1.9) * vCon.xSca );
-
-		// Draw the host IP near the node
-		DrawString(textX, textY, vCon.Red * 10, vCon.Green * 10, vCon.Blue * 10, vCon.SourceIP.c_str());
 
 		// Push a new matrix into the framework.
 		glPushMatrix();
@@ -182,23 +176,18 @@ void GraphicsEngine::DrawHost(VisualConnection vCon)
 		// Scale the object
 		glScalef(vCon.xSca, vCon.ySca, vCon.zSca);
 		// Place an Object into the matrix
-		// glutSolidIcosahedron();
-		glutSolidSphere(vCon.radius, 20, 10);
+		// glutSolidTetrahedron();
+		glutSolidSphere(vCon.radius, 20, 20);
 		// Pop the Matrix off, so that further alterations don't apply to this object.
 		glPopMatrix();
 
 	}
 	else {
 
-		DrawString(vCon.xPos - 0.40, vCon.yPos - 0.325, vCon.Red, vCon.Green, vCon.Blue, vCon.SourceIP.c_str());
 		// Align the IP Display with the radius of the host
 		float textX = (vCon.xPos - vCon.radius) - 0.40;
 		float textY = (vCon.yPos - vCon.radius) - 0.325;
-
-		// Draw the host IP near the node
-		DrawString(textX, textY, 1.0, 5, 3.5, vCon.SourceIP.c_str());
-
-		DrawFilledCircle(vCon.xPos, vCon.yPos, vCon.radius, 360);
+		DrawFilledCircle(vCon.xPos, vCon.yPos, vCon.Red * 10, vCon.Green * 10, vCon.Blue * 10, vCon.radius * 0.85, 360);
 	}
 	
 
@@ -229,7 +218,7 @@ void GraphicsEngine::DrawHostLines()
 void GraphicsEngine::DrawHostLine(VisualConnection from, VisualConnection to)
 {
 	
-	glLineWidth(from.packetCount / 4);
+	glLineWidth(1);
 	glColor3f(1, 3, 3);	
 	for (auto & dC: visualConnections) {
 
@@ -277,7 +266,7 @@ void GraphicsEngine::Resize(int width, int height)
 
 void GraphicsEngine::Idle()
 {
-	// glutPostRedisplay();
+	glutPostRedisplay();
 }
 
 void GraphicsEngine::KeyDown(unsigned char key, int x, int y)
@@ -291,7 +280,8 @@ void GraphicsEngine::KeyDown(unsigned char key, int x, int y)
 		*keyZ = true;
 		break;
 
-	case 'd':
+	// Change the console output mode
+	case 'c':
 		if (captureEngine->GetConsoleMode() == ConsoleMode::ConnectionsMade) {
 			system("cls");
 			captureEngine->SetConsoleMode(ConsoleMode::LiveStream);
@@ -300,9 +290,20 @@ void GraphicsEngine::KeyDown(unsigned char key, int x, int y)
 			captureEngine->SetConsoleMode(ConsoleMode::ConnectionsMade);
 		}
 		break;
+	// Change the dimensions rendered
+	case 'd':
+		Render3D = !Render3D;
+		break;
+
+	// Swap between running and paused
+	case 'p':
+		engineState = (engineState == Running) ? Paused : Running;
+		break;
 
 	case 27:
 	case 'q':
+		engineState = Quitting;
+		glutPostRedisplay();
 		threadMan->EndThreads();
 		exit(0);
 		break;
@@ -456,7 +457,6 @@ void GraphicsEngine::ProcessConnections()
 
 	for (auto & tVC : tempVConnections)
 	{
-
 		// If this is the localhost, place the dot in the center.
 		if (!localHostPlaced && tVC.second.SourceIP == hostIP) {
 			// Set the X,Y, and Z values of the center point
@@ -478,22 +478,10 @@ void GraphicsEngine::ProcessConnections()
 
 		// Set the scaling
 		float Scale = 1.0;
-		if (connectionCount > 0) {
-			if ((pckCount / (pckTotal / connectionCount)) >= 2.0) {
-				Scale = 2.0;
-			}
-			else {
-				Scale = 1.0 + (pckCount / (pckTotal / connectionCount));
-			}
-		}
 		tVC.second.SetScaling(Scale, Scale, Scale);
 
 		// Adjust Colors
 		tVC.second.SetRGBColor(tVC.second.totalBytes / 256, 0.85, 0.15);
-		/*
-		tVC.second.Blue -= tVC.second.totalBytes / 256;
-		tVC.second.Green -= tVC.second.totalBytes / 256;
-		*/
 
 		// Set the rotation
 		tVC.second.SetRotation(RotateAngle, RotateX, RotateY, RotateZ);
@@ -562,17 +550,15 @@ void GraphicsEngine::Init()
 
 		camX = 0.0;
 		camY = 0.0;
-		camZ = 14.0;
+		camZ = 15.0;
 	}
 	else {
 
 		camX = 0.0;
 		camY = 0.0;
-		camZ = 14.0;
+		camZ = 15.0;
 
 	}
-
-
 
 	// Start the Updater thread
 	threadMan->Threads[threadMan->ThreadCount++] = std::thread(&GraphicsEngine::UpdateConnections, this);

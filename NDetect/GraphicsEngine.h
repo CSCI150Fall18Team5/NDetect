@@ -66,6 +66,9 @@ class GraphicsEngine
 	// Manages running threads and holds between them.
 	ThreadManager * threadMan;
 
+	// State of the Graphics Engine
+	GraphicsEngineState engineState = Running;
+
 	////////////////////////
 	// Graphics Constants
 
@@ -79,7 +82,7 @@ public:
 	void Display();
 
 	void DrawCircle(float centerX, float centerY, float radius, int segments);
-	void DrawFilledCircle(float centerX, float centerY, float radius, int segments);
+	void DrawFilledCircle(float centerX, float centerY, float red, float green, float blue, float radius, int segments);
 
 	void DrawHosts();
 	void DrawHost(VisualConnection vCon);

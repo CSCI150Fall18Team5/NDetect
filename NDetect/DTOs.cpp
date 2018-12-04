@@ -251,7 +251,7 @@ VisualConnection::VisualConnection(std::string ipAddr, std::string port)
 VisualConnection::VisualConnection(Connection con)
 {
 	// Set initial values.
-	radius = 0.15;
+	radius = 0.1;
 	SetRGBColor(0.0, 0.85, 0.15);
 
 	// Update Internal TCP/IP Vars

@@ -100,9 +100,9 @@ class CaptureEngine
 	std::string HostIP;
 	int hostAddrHops = 0;
 
-	// Slows the flow of packets on the console during DisplayPacketData()
-	// packets stay on screen longer for longer packets of data.
-	double sleepTime = 0.2;
+	// Sleep times, to force the program to take it's time
+	double captureSleepTime = 0.2, livestreamSleepTime = 0.5, connectionsSleepTime = 200;
+
 
 	// Manages running threads and holds between them.
 	ThreadManager * threadMan;
@@ -114,6 +114,7 @@ class CaptureEngine
 	std::list<Packet> capturedPackets;
 	int packetLimit = 20000;
 	int packetCount = 0;
+	bool newPacketDecoded = false;
 
 	// Connection map
 	/*

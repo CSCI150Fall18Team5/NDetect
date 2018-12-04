@@ -15,7 +15,7 @@ ThreadManager::~ThreadManager()
 void ThreadManager::EndThreads()
 {
 	// Switchable thread ending method
-	int threadEndMethod = 0;
+	int threadEndMethod = 1;
 
 	if (!threadsEnded) {
 		// Tell all threads to stop their loops
@@ -24,7 +24,7 @@ void ThreadManager::EndThreads()
 		for (int i = 0; i < ThreadCount; i++)
 		{
 			// Choice between detach all, or try to join.
-			if (threadEndMethod = 0) {
+			if (threadEndMethod == 0) {
 				Threads[i].detach();
 			}
 			else {
