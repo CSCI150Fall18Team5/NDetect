@@ -3,9 +3,6 @@
 #include "DTOs.h"
 #include <string>
 
-
-
-
 class Filter 
 {
 	// Target IP from the user
@@ -14,10 +11,8 @@ class Filter
 	std::string targetLocalPort = "";
 	std::string targetDestPort = "";
 
-
 	// map with port number value and port Description
 	std::map<std::string, std::vector<std::string>> portSelect;
-
 
 public:
 	Filter();

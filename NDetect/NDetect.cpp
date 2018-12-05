@@ -50,20 +50,20 @@ int main(int argc, char **argv)
 	int menu_choice;
 	bool configuring = true, interfaceSet = false;
 	while (configuring) {
-		std::cout << "Select Menu Mode: \n (1) Set Packet Limit \n (2) Set Connection Timeout \n (3) Set Network Interface \n (4) Set Console \n (5) Start Capture \n (6) Filter \n";
+		std::cout << "Select Menu Mode: \n\r (1) Set Packet Limit \n\r (2) Set Connection Timeout \n\r (3) Set Network Interface \n\r (4) Set Console \n\r (5) Start Capture \n\r (6) Filter \n\r";
 		std::cin >> menu_choice;
 		switch (menu_choice)
 		{
 		case 1: // Set Packet Limit
 			int packet_limit;
-			std::cout << "Select the max packet limit \n";
+			std::cout << "Select the max packet limit: \n\r";
 			std::cin >> packet_limit;
 			captureEngine.SetPacketLimit(packet_limit);
 			break;
 		case 2: // Set Connection Timeout
 			// Set the Connection Timeout in Seconds
 			int timeout;
-			std::cout << "Select the connection timeout limit (sec) \n";
+			std::cout << "Select the connection timeout limit (sec):\n\r";
 			std::cin >> timeout;
 			captureEngine.SetTimeout(timeout);
 			break;
@@ -75,7 +75,7 @@ int main(int argc, char **argv)
 		case 4: 
 			// Set Console output
 			int console_choice;
-			std::cout << "Select Console Mode: \n (1) Live Stream \n (2) Connections ";
+			std::cout << "Select Console Mode: \n\r (1) Live Stream \n\r (2) Connections \n\r";
 			std::cin >> console_choice;
 
 			switch (console_choice)
@@ -99,6 +99,7 @@ int main(int argc, char **argv)
 			// This threading example does not pass arguments.
 			threadMan.Threads[threadMan.ThreadCount++] = std::thread(&CaptureEngine::Capture, &captureEngine);
 
+			// Start the Graphics engine, which runs until we close the program.
 			graphics.StartGLWindow();
 
 			break;
@@ -109,21 +110,21 @@ int main(int argc, char **argv)
 			switch (typeOfFilter)
 			{
 				case 1: // set Local IP
-					std::cout << "Enter IP \n";
+					std::cout << "Enter IP Address:\n\r";
 					std::cin >> choice;
 
 					captureEngine.myFilter->SetLocalTargetIP(choice);
 					captureEngine.noFilter = false;
 					break;
 				case 2: // set Destionation IP
-					std::cout << "Enter IP \n";
+					std::cout << "Enter IP Address:\n\r";
 					std::cin >> choice;
 
 					captureEngine.myFilter->SetDestTargetIP(choice);
 					captureEngine.noFilter = false;
 					break;
 				case 3: // set Local Port
-					std::cout << "Enter IP or Port number\n";
+					std::cout << "Enter Port number or Alias (Like http): \n\r";
 					std::cin >> choice;
 
 					if (isAliasPort(choice))
@@ -132,7 +133,7 @@ int main(int argc, char **argv)
 					captureEngine.noFilter = false;
 					break;
 				case 4: // Set Destination Port
-					std::cout << "Enter IP or Port number\n";
+					std::cout << "Enter Port number or Alias (Like http): \n\r";
 					std::cin >> choice;
 
 					if (isAliasPort(choice))
@@ -141,12 +142,12 @@ int main(int argc, char **argv)
 					captureEngine.noFilter = false;
 					break;
 				default:
-					std::cout << "Answer out of scope\n";
+					std::cout << "Answer out of scope!\n\r";
 					break;
 			}
 			break;
 		default:
-			std::cout << "Answer out of scope\n";
+			std::cout << "Answer out of scope\n\r";
 			break;
 		}
 	}
