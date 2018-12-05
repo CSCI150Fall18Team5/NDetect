@@ -106,25 +106,35 @@ int main(int argc, char **argv)
 			// Enter Filter
 			std::cout << "	Enter 1 for Local IP\n	Enter 2 for Destination IP\n	Enter 3 for Local Port\n	Enter 4 for Destination Port\n";
 			std::cin >> typeOfFilter;
-			std::cout << "Enter IP or Port number\n";
-			std::cin >> choice;
 			switch (typeOfFilter)
 			{
 				case 1: // set Local IP
+					std::cout << "Enter IP \n";
+					std::cin >> choice;
+
 					captureEngine.myFilter->SetLocalTargetIP(choice);
 					captureEngine.noFilter = false;
 					break;
 				case 2: // set Destionation IP
+					std::cout << "Enter IP \n";
+					std::cin >> choice;
+
 					captureEngine.myFilter->SetDestTargetIP(choice);
 					captureEngine.noFilter = false;
 					break;
 				case 3: // set Local Port
+					std::cout << "Enter IP or Port number\n";
+					std::cin >> choice;
+
 					if (isAliasPort(choice))
 						choice = captureEngine.myFilter->GetLocalPortfromMap(choice);
 					captureEngine.myFilter->SetLocalTargetPort(choice);
 					captureEngine.noFilter = false;
 					break;
 				case 4: // Set Destination Port
+					std::cout << "Enter IP or Port number\n";
+					std::cin >> choice;
+
 					if (isAliasPort(choice))
 						choice = captureEngine.myFilter->GetLocalPortfromMap(choice);
 					captureEngine.myFilter->SetDestTargetPort(choice);
