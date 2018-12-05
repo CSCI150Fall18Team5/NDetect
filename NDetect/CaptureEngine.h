@@ -88,7 +88,7 @@ class CaptureEngine
 	int captureMode = 8;
 
 	// Set the console visualization mode
-	ConsoleMode consoleMode = LiveStream;
+	ConsoleMode consoleMode = ConnectionsMade;
 
 	// Switch to show packet data in Live Stream Mode.
 	PacketDisplay displayPacketData = HeaderOnly;
@@ -206,5 +206,5 @@ public:
 	Filter* myFilter = new Filter();
 	
 	// flag for no filter option
-	bool noFilter = false;
+	bool noFilter = true;
 };
